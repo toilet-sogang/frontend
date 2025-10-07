@@ -1,0 +1,149 @@
+.frofile-img{
+    width:33px;
+    height:33px;
+    border-radius:50%;
+    background-color: grey;
+}
+
+.review-con{
+    display: flex;
+    flex-direction: column;
+    gap: 39px;
+    
+    
+}
+
+.review-card{
+  
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  padding: 0 23px;
+  align-items: center;
+  
+}
+
+.top{
+    display: flex;
+    
+    gap: 8px;
+    align-items: center;
+
+}
+
+.info{
+    display: flex;
+    flex-direction: column;
+   
+    gap: 0;
+    margin-top:0px;
+    
+}
+
+.info2{
+    display: flex;
+  
+    gap: 3px;
+    align-items: center;
+
+    ;
+    
+    
+}
+
+.name{
+    color: #595757;
+    text-align: center;
+    font-family: Pretendard;
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+
+}
+
+.date{
+    color: #979595;
+font-family: Pretendard;
+font-size: 10px;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+.stars img {
+    display: block; /* 각 별 이미지를 블록 요소로 변경 */
+    float: left;    /* 블록 요소로 만들면서 수평으로 나열하기 위해 float 사용 */
+}
+
+.stars{
+    margin: 0;
+    padding: 0;
+    
+}
+
+.desc{
+    margin-top: 5px;
+    font-size:15px;
+}
+
+.contents{
+    
+    display: flex;
+    flex-direction: column;
+    gap:11px;
+}
+
+.like{
+    border-radius: 50px;
+    border: 0.6px solid #4860BE;
+    margin-top: 0.5px;
+   
+    width: 41px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+
+.sub-like{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    margin-top:1px;
+    font-size: 10px;
+    gap: 4px;
+}
+
+.tags{
+    display: flex;
+
+    justify-content: flex-start;
+
+   
+    gap:10px;
+  
+}
+
+.tag-item{
+
+    padding: 0px 10px;
+    height: 25px;
+
+    background-color: #4860BE;
+    border-radius: 50px;
+    background: rgba(191, 200, 239, 0.32);
+
+    color: #000;
+    text-align: center;
+
+    font-size: 10px;
+    
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: centera;
+    
+}
+
