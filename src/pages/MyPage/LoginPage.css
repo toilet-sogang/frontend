@@ -1,0 +1,42 @@
+.to-login{
+    width: 248px;
+height: 63px;
+border-radius: 20px;
+background: #4860BE;
+color: #FFF;
+text-align: center;
+font-size: 15px;
+font-weight: 500;
+border: none;
+cursor: pointer;
+
+;
+}
+
+.container{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+   
+}
+
+.login-con{
+   
+    display: inline-block;
+    margin-bottom:83px;
+
+}
+
+.other{
+    text-align: right;
+    margin: 8px 8px;
+    color: #595757;
+    
+    
+    font-size: 10px;
+    
+    font-weight: 400;
+    cursor: pointer;
+    
+}
