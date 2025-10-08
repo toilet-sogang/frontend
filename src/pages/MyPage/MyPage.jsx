@@ -1,28 +1,174 @@
 import "./MyPage.css"
+import crown from "../../assets/MyPage/crown.svg"
+import rename from "../../assets/MyPage/rename.svg"
+import star_yell from "../../assets/star/star-yell.svg"
+import star_grey from "../../assets/star/star-grey.svg"
 
 export default function MyPage() {
-    const res = {
-  "success": true,
-  "code": 200,
-  "message": "내 정보 조회 성공",
-  "data": {
-    "name": "김도영",
-    "profile": "data:image/jpeg;base64,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",
-    "rate": 15,
-    "numReview": 3
+  // ✅ ReviewCard.jsx에서 복사: 태그 한글 매핑
+  const tagMap = {
+    TOILET_CLEAN: "변기 상태가 청결해요",
+    SINK_CLEAN: "세면대가 청결해요",
+    GOOD_VENTILATION: "환기가 잘 돼요",
+    ENOUGH_HANDSOAP: "손 세정제가 충분해요",
+    BRIGHT_LIGHTING: "조명 밝아요",
+    TRASH_OVERFLOW: "쓰레기가 넘쳐요",
+    DIRTY_FLOOR: "바닥이 더러워요",
+    DIRTY_MIRROR: "거울이 지저분해요",
+    NO_TOILET_PAPER: "휴지가 없어요",
+    BAD_ODOR: "악취가 심해요",
+  };
+
+  // ✅ ReviewCard.jsx에서 복사: 날짜 포맷 함수
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
+  const res1 = {
+    "success": true,
+    "code": 200,
+    "message": "내 정보 조회 성공",
+    "data": {
+      "name": "김도영",
+      "profile": "https://picsum.photos/id/237/200/300", // 생략
+      "rate": 15,
+      "numReview": 3
+    }
   }
-}
 
-const name = res.data.name
-const profile = res.data.profile
-const rate = res.data.rate
-const numReview = res.data.numReview
+  const res2 = {
+    "success": true,
+    "code": 200,
+    "message": "리뷰 목록을 성공적으로 조회했습니다.",
+    "data": [
+      {
+        "id": 101,
+        "name": "홍대",
+        "gender": "FEMALE",
+        "numGate": 2,
+        "desc": "깔끔하고 휴지가 넉넉했어요.",
+        "star": 4,
+        "photo": [
+          "https://picsum.photos/id/237/200/300",
+          "https://picsum.photos/id/237/200/300"
+        ],
+        "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
+        "createdAt": "2025-09-30T10:00:00",
+        "updatedAt": "2025-09-30T11:00:00"
+      },
+      {
+        "id": 99,
+        "name": "신촌(지하)",
+        "gender": "MALE",
+        "numGate": 1,
+        "desc": "조금 좁지만 관리가 잘 되어 있습니다.",
+        "star": 5,
+        "photo": [],
+        "tag": ["GOOD_VENTILATION"],
+        "createdAt": "2025-09-28T09:00:00",
+        "updatedAt": "2025-09-28T09:00:00"
 
-    return<div className="test">
-        <img className="profile" src={profile} alt="profile"/>
-        <div className="name">{name}</div>
-        <div className="rate">평점: {rate}점</div>
-        <div className="numReview">리뷰 수: {numReview}개</div>
+      }
+    ]
+  }
 
+  const { name, profile, rate, numReview } = res1.data
+  const reviews = res2.data
+
+  // 별점 렌더링 함수
+  const renderStars = (star) => {
+    return (
+      <div className="star-container">
+        {[...Array(5)].map((_, i) => (
+          <img
+            key={i}
+            src={i < star ? star_yell : star_grey}
+            alt="star"
+            className="star-icon"
+            width="12px" // ✅ ReviewCard.jsx의 별 크기 적용
+          />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="my-page">
+      <div className="profileContainer">
+        <div className="profile-top">
+          <img className="my-profile" src={profile} alt="profile" />
+          <div className="sub-con">
+            <div className="my-rate">
+              <img src={crown} alt="crown" />
+              <p>상위 {rate}%</p>
+            </div>
+            <div className="my-name">
+              <p>{name}</p>
+              <img src={rename} alt="rename" />
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-bottom">
+          {name}님, 총 <span>{numReview}</span>개의 리뷰를 작성하셨네요!
+        </div>
+      </div>
+
+      <div className="line"></div>
+
+      <div className="my-review">
+        <p>내가 쓴 리뷰</p>
+
+        <div className="ad"></div> {/* 광고 넣는 곳 */}
+
+        <div className="reviews">
+          {reviews.map((review) => {
+            // ✅ ReviewCard.jsx의 날짜 포맷 로직 적용
+            const isUpdated = review.createdAt !== review.updatedAt;
+            const displayDate = isUpdated
+              ? `${formatDate(review.updatedAt)} (수정)`
+              : formatDate(review.createdAt);
+
+            return (
+            <div key={review.id} className="review-item">
+
+              <div className="review-header">
+                <h3>{review.name}</h3>
+                {renderStars(review.star)}
+                <p>{review.numGate}호선 · {review.gender=="FEMALE"? "여자":<span>남자</span>}</p>
+              </div>
+
+              <p className="review-desc">{review.desc}</p>
+
+              {review.photo.length > 0 && (
+                <div className="review-photos">
+                  {review.photo.map((url, index) => (
+                    <img key={index} src={url} alt={`review-${index}`} />
+                  ))}
+                </div>
+              )}
+
+              <div className="review-tags">
+                {review.tag.map((t, index) => (
+                  <span key={index} className="tag">
+                    {tagMap[t] || t} {/* ✅ 한글 태그 매핑 적용 */}
+                  </span>
+                ))}
+              </div>
+
+              <p className="review-date">
+                {displayDate} {/* ✅ 포맷된 날짜 적용 */}
+              </p>
+            </div>
+          )})}
+        </div>
+      </div>
     </div>
+  )
 }
