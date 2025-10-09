@@ -1,3 +1,77 @@
-.test{
-    background-color: lightgreen;
+.my-profile{
+    width: 79px;
+    height: 79px;
+    border-radius: 50%;
+    object-fit: cover;
+
+}
+
+.profileContainer{
+    display: flex;
+    flex-direction: column;
+    gap: 19px;
+    margin-top: 120px;
+    margin-left: 13px;
+}
+
+.profile-top{
+    display: flex;
+    align-items: center;
+    gap:16px;
+}
+
+.sub-con{
+    display: flex;
+    flex-direction: column;
+    gap:7px;
+}
+
+.my-rate{
+    display: flex;
+    align-items: center;
+    gap:3px;
+    font-size: 13px;
+    color: #4860BE;
+    font-weight: 400;
+
+   
+}
+
+
+
+.my-rate img{
+   width: 12px;
+    height: 9px;
+    cursor: pointer;
+   
+}
+
+.my-name{
+    font-size: 20px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    font-weight: 400;
+
+}
+
+.profile-bottom{
+    font-size: 16px;
+    color: #000;
+    font-weight: 400;
+    padding-left: 2px;
+
+}
+
+.profile-bottom span{
+    color: #4860BE;;
+}
+
+.line{
+    width: 100%;
+    height: 1px;
+    background: #B1B1B1;
+    margin-top: 23.46px;
 }
