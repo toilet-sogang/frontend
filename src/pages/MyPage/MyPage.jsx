@@ -3,6 +3,7 @@ import crown from "../../assets/MyPage/crown.svg"
 import rename from "../../assets/MyPage/rename.svg"
 import star_yell from "../../assets/star/star-yell.svg"
 import star_grey from "../../assets/star/star-grey.svg"
+import paper from "../../assets/MyPage/paper.svg"
 
 export default function MyPage() {
   // ✅ ReviewCard.jsx에서 복사: 태그 한글 매핑
@@ -43,40 +44,41 @@ export default function MyPage() {
   }
 
   const res2 = {
-    "success": true,
-    "code": 200,
-    "message": "리뷰 목록을 성공적으로 조회했습니다.",
-    "data": [
-      {
-        "id": 101,
-        "name": "홍대",
-        "gender": "FEMALE",
-        "numGate": 2,
-        "desc": "깔끔하고 휴지가 넉넉했어요.",
-        "star": 4,
-        "photo": [
-          "https://picsum.photos/id/237/200/300",
-          "https://picsum.photos/id/237/200/300"
-        ],
-        "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
-        "createdAt": "2025-09-30T10:00:00",
-        "updatedAt": "2025-09-30T11:00:00"
-      },
-      {
-        "id": 99,
-        "name": "신촌(지하)",
-        "gender": "MALE",
-        "numGate": 1,
-        "desc": "조금 좁지만 관리가 잘 되어 있습니다.",
-        "star": 5,
-        "photo": [],
-        "tag": ["GOOD_VENTILATION"],
-        "createdAt": "2025-09-28T09:00:00",
-        "updatedAt": "2025-09-28T09:00:00"
+  "success": true,
+  "code": 200,
+  "message": "리뷰 목록을 성공적으로 조회했습니다.",
+  "data": [
+    {
+      "id": 101,
+      "name": "홍대",
+      "gender": "FEMALE",
+      "line": 2,
+      "desc": "깔끔하고 휴지가 넉넉했어요.",
+      "star": 4,
+      "photo": [
+         "https://picsum.photos/id/237/200/300",
+        "https://picsum.photos/id/237/200/300"
+      ],
+      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
+      "createdAt": "2025-09-30T10:00:00",
+      "updatedAt": "2025-09-30T11:00:00"
+    },
+    {
+      "id": 99,
+      "name": "신촌(지하)",
+      "gender": "MALE",
+      "line": 2,
+      "desc": "조금 좁지만 관리가 잘 되어 있습니다.",
+      "star": 5,
+      "photo": [],
+      "tag": ["GOOD_VENTILATION"],
+      "createdAt": "2025-09-28T09:00:00",
+      "updatedAt": "2025-09-28T09:00:00"
+    }
+  ]
+}
 
-      }
-    ]
-  }
+
 
   const { name, profile, rate, numReview } = res1.data
   const reviews = res2.data
@@ -91,7 +93,7 @@ export default function MyPage() {
             src={i < star ? star_yell : star_grey}
             alt="star"
             className="star-icon"
-            width="12px" // ✅ ReviewCard.jsx의 별 크기 적용
+            width="17px" // ✅ ReviewCard.jsx의 별 크기 적용
           />
         ))}
       </div>
@@ -128,6 +130,7 @@ export default function MyPage() {
         <div className="ad"></div> {/* 광고 넣는 곳 */}
 
         <div className="reviews">
+
           {reviews.map((review) => {
             // ✅ ReviewCard.jsx의 날짜 포맷 로직 적용
             const isUpdated = review.createdAt !== review.updatedAt;
@@ -139,12 +142,16 @@ export default function MyPage() {
             <div key={review.id} className="review-item">
 
               <div className="review-header">
-                <h3>{review.name}</h3>
-                {renderStars(review.star)}
-                <p>{review.numGate}호선 · {review.gender=="FEMALE"? "여자":<span>남자</span>}</p>
+                <h3><img src={paper} alt="" />{review.name}</h3>
+                
+                <p>{review.line}호선&nbsp;· {review.gender=="FEMALE"? <p className="fe">&nbsp;여자</p>:<p className="ma">&nbsp;남자</p>}</p>
+
+                <p className="review-date">{displayDate} {/* ✅ 포맷된 날짜 적용 */} </p>
               </div>
 
-              <p className="review-desc">{review.desc}</p>
+              <div className="stars">{renderStars(review.star)}</div>
+
+              <div className="review-desc">{review.desc}</div>
 
               {review.photo.length > 0 && (
                 <div className="review-photos">
@@ -162,9 +169,7 @@ export default function MyPage() {
                 ))}
               </div>
 
-              <p className="review-date">
-                {displayDate} {/* ✅ 포맷된 날짜 적용 */}
-              </p>
+
             </div>
           )})}
         </div>
