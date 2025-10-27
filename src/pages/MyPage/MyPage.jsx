@@ -4,8 +4,13 @@ import rename from "../../assets/MyPage/rename.svg"
 import star_yell from "../../assets/star/star-yell.svg"
 import star_grey from "../../assets/star/star-grey.svg"
 import paper from "../../assets/MyPage/paper.svg"
+import { useNavigate } from "react-router-dom";
+import ChangeName from "./ChangeName"
+
+import TopHeader from '../../components/layout/TopHeader.jsx'
 
 export default function MyPage() {
+  const nav = useNavigate();
   // ✅ ReviewCard.jsx에서 복사: 태그 한글 매핑
   const tagMap = {
     TOILET_CLEAN: "변기 상태가 청결해요",
@@ -37,7 +42,7 @@ export default function MyPage() {
     "message": "내 정보 조회 성공",
     "data": {
       "name": "김도영",
-      "profile": "https://picsum.photos/id/237/200/300", // 생략
+      "profile": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s", // 생략
       "rate": 15,
       "numReview": 3
     }
@@ -56,8 +61,8 @@ export default function MyPage() {
       "desc": "깔끔하고 휴지가 넉넉했어요.",
       "star": 4,
       "photo": [
-         "https://picsum.photos/id/237/200/300",
-        "https://picsum.photos/id/237/200/300"
+         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s",
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
       ],
       "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
       "createdAt": "2025-09-30T10:00:00",
@@ -102,6 +107,7 @@ export default function MyPage() {
 
   return (
     <div className="my-page">
+      <TopHeader />
       <div className="profileContainer">
         <div className="profile-top">
           <img className="my-profile" src={profile} alt="profile" />
@@ -112,7 +118,7 @@ export default function MyPage() {
             </div>
             <div className="my-name">
               <p>{name}</p>
-              <img src={rename} alt="rename" />
+              <img src={rename} alt="rename" onClick={()=>{nav("/ChangeName")}}/>
             </div>
           </div>
         </div>
@@ -125,9 +131,9 @@ export default function MyPage() {
       <div className="line"></div>
 
       <div className="my-review">
-        <p>내가 쓴 리뷰</p>
+        <div className="review-header">내가 쓴 리뷰</div>
 
-        <div className="ad"></div> {/* 광고 넣는 곳 */}
+        <div className="ad">광고배너</div> {/* 광고 넣는 곳 */}
 
         <div className="reviews">
 
@@ -147,6 +153,9 @@ export default function MyPage() {
                 <p>{review.line}호선&nbsp;· {review.gender=="FEMALE"? <p className="fe">&nbsp;여자</p>:<p className="ma">&nbsp;남자</p>}</p>
 
                 <p className="review-date">{displayDate} {/* ✅ 포맷된 날짜 적용 */} </p>
+
+        
+
               </div>
 
               <div className="stars">{renderStars(review.star)}</div>
@@ -168,6 +177,10 @@ export default function MyPage() {
                   </span>
                 ))}
               </div>
+              <div className="options">
+                <div className="edit">수정하기</div>
+                  <div className="del">삭제하기</div>
+                </div>
 
 
             </div>

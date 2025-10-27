@@ -1,0 +1,26 @@
+.top-header-con{
+    padding-top: 50px;
+    
+}
+
+.logo{
+    width: 130px;
+    height: 40px;
+    background-color: rgb(177, 177, 177);
+    text-align: center;
+    
+}
+
+.log-out{
+    font-size: 15px;
+    
+}
+
+.top-header-con .content{
+    margin: 0px 25px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 27px;
+    align-items: center;
+}
+

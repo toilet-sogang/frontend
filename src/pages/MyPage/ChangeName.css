@@ -1,0 +1,31 @@
+.change-name-con{
+    width: 100%;
+    height: calc(100vh - 350px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    
+   
+}
+
+
+
+
+
+.header{
+    
+    font-size: 17px;
+    padding-bottom: 5px;
+}
+.name-form input{
+    width:177px;
+    height: 41px;
+}
+
+.name-form button{
+    width: 64px;
+    height: 41px;
+    border-radius: 5px;
+    background-color: #4860BE;
+}
