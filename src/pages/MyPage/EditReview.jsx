@@ -1,5 +1,4 @@
 import React, { useId, useState, useEffect } from "react";
-// [수정] react-router-dom 훅 임포트
 import { useLocation, useNavigate } from "react-router-dom";
 import TopHeader from "../../components/layout/TopHeader";
 import star_yell from "../../assets/star/star-yell.svg";
@@ -7,7 +6,7 @@ import star_grey from "../../assets/star/star-grey.svg";
 import "./EditReview.css";
 import ad from "../../assets/MyPage/ad_edit.svg";
 
-// [유지] 요청하신 이미지 활용 별점 함수
+// 별점 렌더링 함수
 const renderStars = (star, onChange, size = 40) => {
   return (
     <div className="star-container er-stars" role="radiogroup" aria-label="별점 선택">
@@ -22,8 +21,12 @@ const renderStars = (star, onChange, size = 40) => {
             className={`er-star ${active ? "is-active" : ""}`}
             onClick={() => onChange?.(n)}
             onKeyDown={(e) => {
-              if (e.key === "ArrowRight" || e.key === "ArrowUp") onChange?.(Math.min(5, (star || 0) + 1));
-              if (e.key === "ArrowLeft" || e.key === "ArrowDown") onChange?.(Math.max(1, (star || 0) - 1));
+              if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+                onChange?.(Math.min(5, (star || 0) + 1));
+              }
+              if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+                onChange?.(Math.max(1, (star || 0) - 1));
+              }
             }}
           >
             <img
@@ -40,8 +43,7 @@ const renderStars = (star, onChange, size = 40) => {
   );
 };
 
-
-/** 백엔드 enum -> 라벨 매핑 (요청한 규칙 그대로) */
+/** 백엔드 enum -> 라벨 매핑 */
 const tagMap = {
   TOILET_CLEAN: "변기 상태가 청결해요",
   SINK_CLEAN: "세면대가 청결해요",
@@ -54,18 +56,18 @@ const tagMap = {
   NO_TOILET_PAPER: "휴지가 없어요",
   BAD_ODOR: "악취가 심해요",
 };
-const TAG_KEYS = Object.keys(tagMap);
 
-// [수정] props ({ initialReview, onCancel, onSaved }) 제거
+const TAG_KEYS = Object.keys(tagMap);
+// 앞의 5개 = 긍정, 6번째부터 = 부정
+const POSITIVE_TAG_KEYS = TAG_KEYS.slice(0, 5);
+const NEGATIVE_TAG_KEYS = TAG_KEYS.slice(5);
+
 export default function EditReview() {
-  // [수정] 라우터 훅 사용
   const location = useLocation();
   const nav = useNavigate();
 
-  // MyPage에서 state로 넘겨준 review 객체를 initialReview로 사용
   const initialReview = location.state?.review;
 
-  // [수정] initialReview가 없을 경우 마이페이지로 돌려보냄 (URL로 직접 접근 방지)
   useEffect(() => {
     if (!initialReview) {
       alert("잘못된 접근입니다. 리뷰 정보가 없습니다.");
@@ -73,17 +75,16 @@ export default function EditReview() {
     }
   }, [initialReview, nav]);
 
-  // [수정] initialReview?.tags -> initialReview?.tag (MyPage 데이터 구조에 맞게 수정)
   const [star, setStar] = useState(
     typeof initialReview?.star === "number" ? initialReview.star : 0
   );
   const [desc, setDesc] = useState(initialReview?.desc ?? "");
   const [isDisability, setIsDisability] = useState(
-    Boolean(initialReview?.is_disability ?? false) // MyPage 데이터에 is_disability가 없으면 false로 기본값 설정
+    Boolean(initialReview?.is_disability ?? false)
   );
   const [selectedTags, setSelectedTags] = useState(
     new Set(
-      Array.isArray(initialReview?.tag) // MyPage 데이터('tag')를 기반으로 Set 생성
+      Array.isArray(initialReview?.tag)
         ? initialReview.tag.filter((k) => tagMap[k])
         : []
     )
@@ -92,21 +93,36 @@ export default function EditReview() {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const uid = useId();
-
   const MAX_DESC = 1000;
 
+  // [수정] 태그 3개 제한 로직 추가
   const toggleTag = (key) => {
     setSelectedTags((prev) => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
+
+      if (next.has(key)) {
+        // 1. 태그를 "제거"하는 경우: 항상 허용
+        next.delete(key);
+        return next;
+      } else {
+        // 2. 태그를 "추가"하는 경우: 3개 미만일 때만 허용
+        if (prev.size < 3) {
+          next.add(key);
+          return next;
+        } else {
+          // 3. 3개일 때 4번째 태그를 추가하려는 경우: 경고창
+          alert("최대 3개까지 선택 가능합니다.");
+          // 4. 상태 변경을 취소하고 "이전" 상태(prev)를 반환
+          return prev;
+        }
+      }
     });
   };
 
   const validate = () => {
     const next = {};
     if (!star || star < 1) next.star = "별점을 선택하세요.";
-    if (!desc.trim()) next.desc = "리뷰 설명을 입력하세요.";
+    if (!desc.trim()) next.desc = "리뷰를 작성해주세요."; // Placeholder와 일치
     if (desc.length > MAX_DESC) next.desc = `설명은 ${MAX_DESC}자 이내로 입력하세요.`;
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -114,43 +130,36 @@ export default function EditReview() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate() || !initialReview) return; // initialReview 없으면 제출 방지
+    if (!validate() || !initialReview) return;
 
     setSubmitting(true);
 
-    // 🔽 백엔드 요청 바디 스펙 (요청하신 타입대로)
     const payload = {
-      star: Number(star),                 // Double
-      desc: desc.trim(),                  // String
-      tags: Array.from(selectedTags),     // List<Enum>
-      is_disability: Boolean(isDisability), // Boolean
+      star: Number(star),
+      desc: desc.trim(),
+      tags: Array.from(selectedTags),
+      is_disability: Boolean(isDisability),
     };
 
-    // [수정] API 요청 로직 추가
     try {
-      // MyPage에서 넘겨받은 review의 id
       const reviewId = initialReview.id;
 
-      // TODO: 실제 API 엔드포인트로 교체하세요. (예: /api/reviews/{reviewId})
       const response = await fetch(`/api/reviews/${reviewId}`, {
-        method: "PUT", // 또는 "PATCH"
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          // TODO: 필요 시 인증 토큰 헤더 추가
-          // "Authorization": `Bearer ${your_auth_token}`
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        // 나중에 손보실 수 있도록 error handling 예시 추가
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `API 요청 실패: ${response.status}`);
       }
 
       console.log("[EditReview] submit payload:", payload);
       alert("리뷰가 수정되었습니다.");
-      nav(-1); // [수정] 저장이 성공하면 이전 페이지(MyPage)로 이동
+      nav(-1);
     } catch (err) {
       console.error(err);
       alert(`수정 중 오류가 발생했습니다: ${err.message}`);
@@ -159,7 +168,6 @@ export default function EditReview() {
     }
   };
 
-  // initialReview가 로드되기 전(혹은 없는) 경우 로딩 표시
   if (!initialReview) {
     return (
       <div className="edit-review-page">
@@ -175,44 +183,41 @@ export default function EditReview() {
     <div className="edit-review-page">
       <TopHeader />
 
-      {/* [수정] 폼에 id 추가 (하단 버튼에서 참조) */}
       <form id="review-form" className="er-form" onSubmit={handleSubmit} noValidate>
-
-        {/* [추가] 화장실 정보 표시 (별점 위) */}
+        {/* 화장실 정보 */}
         <div className="er-field">
-
           <div className="er-review-info">
             <h3>{initialReview.name}</h3>
             <p>
               {initialReview.line}호선
               <span className="er-review-info-divider">·</span>
               {initialReview.gender === "FEMALE" ? (
-                <span style={{ color: "#E13A6E" }}>여자</span>
+                <span className="fe" style={{ color: "#E13A6E" }}>여자</span>
               ) : (
-                <span style={{ color: "#0D6EFD" }}>남자</span>
+                <span className="ma" style={{ color: "#0D6EFD" }}>남자</span>
               )}
             </p>
           </div>
         </div>
 
-        {/* 별점 (이미지 사용 함수 호출) */}
+        {/* 별점 */}
         <div className="er-field">
           <label className="er-label-star">
-          {renderStars(star, setStar)}
-          {errors.star && <p className="er-err">{errors.star}</p>}
+            {renderStars(star, setStar)}
+            {errors.star && <p className="er-err">{errors.star}</p>}
           </label>
-
         </div>
+
         <img src={ad} width="100%" alt="" />
 
-
+        {/* 장애인 화장실 태그 (3개 카운트에서 제외) */}
         <div className="er-field">
           <label className="er-label">장애인 화장실에 대한 리뷰라면 클릭!</label>
           <div className="er-tags" role="group" aria-label="장애인 편의시설 선택">
             <button
               type="button"
               className={`er-tag ${isDisability ? "is-selected" : ""}`}
-              aria-pressed={isDisability}
+              id="disabled" aria-pressed={isDisability}
               onClick={() => setIsDisability((prev) => !prev)}
             >
               장애인 화장실
@@ -220,12 +225,11 @@ export default function EditReview() {
           </div>
         </div>
 
-
-                {/* 태그 멀티선택 */}
+        {/* 긍정 태그 (3개 카운트에 포함) */}
         <div className="er-field">
-          <label className="er-label">태그 선택</label>
-          <div className="er-tags" role="group" aria-label="리뷰 태그 선택">
-            {TAG_KEYS.map((key) => {
+          <label className="er-label">만족스러워요</label>
+          <div className="er-tags" role="group" aria-label="긍정 리뷰 태그 선택">
+            {POSITIVE_TAG_KEYS.map((key) => {
               const selected = selectedTags.has(key);
               return (
                 <button
@@ -233,7 +237,7 @@ export default function EditReview() {
                   type="button"
                   className={`er-tag ${selected ? "is-selected" : ""}`}
                   aria-pressed={selected}
-                  onClick={() => toggleTag(key)}
+                  onClick={() => toggleTag(key)} // 수정된 함수 호출
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -247,51 +251,69 @@ export default function EditReview() {
               );
             })}
           </div>
-          {/* <div className="er-hintrow">
-            <span className="er-count">{selectedTags.size}개 선택</span>
-            {selectedTags.size > 0 && (
-              <button
-                type="button"
-                className="er-tag-clear"
-                onClick={() => setSelectedTags(new Set())}
-              >
-                전체 해제
-              </button>
-            )}
-          </div> */}
         </div>
 
+        {/* 부정 태그 (3개 카운트에 포함) */}
+        <div className="er-field">
+          <label className="er-label">개선이 필요해요</label>
+          <div className="er-tags" role="group" aria-label="부정 리뷰 태그 선택">
+            {NEGATIVE_TAG_KEYS.map((key) => {
+              const selected = selectedTags.has(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`er-tag ${selected ? "is-selected" : ""}`}
+                  aria-pressed={selected}
+                  onClick={() => toggleTag(key)} // 수정된 함수 호출
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleTag(key);
+                    }
+                  }}
+                  title={key}
+                >
+                  {tagMap[key]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-
-        {/* 설명 */}
+        {/* 설명 (Text Area) */}
         <div className="er-field">
           <label htmlFor={`${uid}-desc`} className="er-label">
-            리뷰 상세 설명
+            {/* 비어있는 라벨 */}
           </label>
-          <textarea
-            id={`${uid}-desc`}
-            className={`er-textarea ${errors.desc ? "er-input-err" : ""}`}
-            placeholder="사용 경험을 자세히 적어주세요"
-            maxLength={MAX_DESC}
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            rows={6}
-          />
-          <div className="er-hintrow">
-            <span className="er-count">
-              {desc.length}/{MAX_DESC}
-            </span>
+          
+          <div className={`er-textarea-wrapper ${errors.desc ? "er-input-err" : ""}`}>
+            
+            <textarea
+              id={`${uid}-desc`}
+              className="er-textarea"
+              placeholder="리뷰를 작성해주세요"
+              maxLength={MAX_DESC}
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              rows={6}
+            />
+
+            <div className="er-textarea-footer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4.68001 16.6666C4.29612 16.6666 3.97584 16.5383 3.71918 16.2816C3.46251 16.0249 3.3339 15.7044 3.33334 15.3199V4.67992C3.33334 4.29603 3.46195 3.97575 3.71918 3.71909C3.9764 3.46242 4.29668 3.33381 4.68001 3.33325H15.3208C15.7042 3.33325 16.0245 3.46186 16.2817 3.71909C16.5389 3.97631 16.6672 4.29659 16.6667 4.67992V15.3208C16.6667 15.7041 16.5383 16.0244 16.2817 16.2816C16.025 16.5388 15.7045 16.6671 15.32 16.6666H4.68001ZM4.68001 15.8333H15.3208C15.4486 15.8333 15.5661 15.7799 15.6733 15.6733C15.7806 15.5666 15.8339 15.4488 15.8333 15.3199V4.67992C15.8333 4.55159 15.78 4.43381 15.6733 4.32659C15.5667 4.21936 15.4489 4.16603 15.32 4.16659H4.68001C4.55168 4.16659 4.4339 4.21992 4.32668 4.32659C4.21945 4.43325 4.16612 4.55103 4.16668 4.67992V15.3208C4.16668 15.4485 4.22001 15.566 4.32668 15.6733C4.43334 15.7805 4.55084 15.8338 4.67918 15.8333M6.92334 13.7499H13.205C13.34 13.7499 13.4383 13.6896 13.5 13.5691C13.5617 13.4485 13.5533 13.3291 13.475 13.2108L11.7917 10.9508C11.7195 10.8608 11.6297 10.8158 11.5225 10.8158C11.4158 10.8158 11.3261 10.8608 11.2533 10.9508L9.34334 13.3658L8.15418 11.9283C8.0814 11.8488 7.99418 11.8091 7.89251 11.8091C7.7914 11.8091 7.70445 11.8541 7.63168 11.9441L6.67001 13.2108C6.58001 13.3291 6.56612 13.4485 6.62834 13.5691C6.69057 13.6896 6.7889 13.7499 6.92334 13.7499Z" fill="#4860BE"/>
+              </svg>
+
+              <span className="er-count">
+                {desc.length}/{MAX_DESC}
+              </span>
+            </div>
           </div>
+          
           {errors.desc && <p className="er-err">{errors.desc}</p>}
         </div>
 
-
-
-
-
-
-        {/* 하단 공간 (고정 버튼과 겹침 방지) */}
-        <div style={{ height: 88 }} />
+    
       </form>
 
       {/* 고정 하단 액션 */}
@@ -299,7 +321,7 @@ export default function EditReview() {
         <button
           type="button"
           className="er-btn er-ghost"
-          onClick={() => nav(-1)} // [수정] "취소" 시 마이페이지로 이동
+          onClick={() => nav(-1)}
           disabled={submitting}
         >
           취소
@@ -307,7 +329,7 @@ export default function EditReview() {
         <button
           type="submit"
           className="er-btn er-primary"
-          form="review-form" // [수정] 폼 id로 연결
+          form="review-form"
           disabled={submitting}
         >
           {submitting ? "저장 중..." : "수정 완료"}
