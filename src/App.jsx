@@ -9,12 +9,14 @@ import LoginPage from './pages/MyPage/LoginPage';
 import SignupPage from './pages/MyPage/SignupPage';
 import ChangeName from './pages/MyPage/ChangeName';
 import EditReview from './pages/MyPage/EditReview';
-
+import ScrollToTop from './components/layout/ScrollToTop';
 
 function App() {
   return (
     <BrowserRouter >
+    <ScrollToTop />
       <Routes>
+        
         <Route path="/" element={<HomePage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/login" element={<LoginPage />} />

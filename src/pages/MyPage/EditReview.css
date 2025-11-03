@@ -5,37 +5,49 @@
 }
 
 /* --- 태그 및 장애인 버튼 스타일 --- */
-/* (기존 .er-tag 스타일이 있다면 아래 내용으로 덮어쓰거나 확인하세요) */
-
 .er-tags {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
 .er-tag {
-  display: inline-block;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid #e0e0e0;
-  background-color: #f8f9fa; /* 기본 (선택 안 됨) 배경색 */
-  color: #495057; /* 기본 (선택 안 됨) 글자색 */
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+width: 105px;
+height: 25px;
+flex-shrink: 0;
+border-radius: 50px;
+background: #EAEDF9;
+border: none;
+color: #494949;
+text-align: center;
+font-size: 11px;
+font-style: normal;
+/* font-weight: 400; */
+line-height: normal;
+cursor: pointer; /* 클릭 가능하도록 추가 */
 }
 
-.er-tag:hover {
-  background-color: #e9ecef;
+#disabled {
+    font-size: 12px;
+    width: 110px;
+    height: 25px;
+    border-radius: 5px;
+    border: 0.8px solid #627EF1;
+    background-color: #EAEDF9;
+    border: none;
+}
+
+#disabled.is-selected {
+    border-radius: 5px;
+    color: #ffffff;
+    background:#819aff;
+    border: none;
 }
 
 /* [핵심] 선택된 태그/버튼 스타일 */
 .er-tag.is-selected {
-  background-color: #0d6efd; /* 선택 시 배경색 (예: 파란색) */
-  color: #ffffff; /* 선택 시 글자색 */
-  border-color: #0d6efd; /* 선택 시 테두리색 */
-  font-weight: 600;
+    color: #ffffff;
+    background:#819aff;
 }
 
 
@@ -46,15 +58,16 @@ gap: 13px;
 }
 
 .er-field{
-    margin: 0 27px;
+    margin: 0 27px 20px 27px; /* 필드 간 하단 마진 추가 */
 }
 
 .er-review-info h3 {
-  font-size: 23px;
+  font-size: 27px;
 color: #000;
 font-style: normal;
 font-weight: 400;
 line-height: normal;
+margin: 0; /* h3 기본 마진 제거 */
 }
 
 .er-review-info p {
@@ -69,8 +82,15 @@ line-height: normal;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 15px;
-    padding-bottom: 20px;
+    padding-bottom: 5px;
+    font-size: 15px;
+}
+
+.er-label {
+  font-size: 15px;
+  color: #000;
+  margin-bottom: 10px; /* 라벨과 컨텐츠 사이 간격 */
+  display: block;
 }
 
 .er-review-info-divider {
@@ -85,3 +105,107 @@ line-height: normal;
 .er-review-info .ma {
   color: #0D6EFD;
 }
+
+/* --- [수정] Text Area 섹션 --- */
+
+/* 1. Text Area 래퍼 스타일 */
+.er-textarea-wrapper {
+  box-sizing: border-box; /* 패딩/테두리 포함 크기 계산 */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-family: "pretendard-Regular";
+  border: 1px solid #ddd; /* 기본 테두리 */
+  border-radius: 8px;
+  background-color: #fff;
+  transition: border-color 0.2s;
+
+  /* 내부 패딩: 상 17, 좌우 15, 하 10 */
+  padding: 17px 15px 10px 15px;
+}
+
+/* 래퍼 포커스 시 테두리 */
+.er-textarea-wrapper:focus-within {
+  border-color: #4860BE; 
+}
+
+/* 래퍼 에러 시 테두리 */
+.er-textarea-wrapper.er-input-err {
+  border-color: #e53e3e; /* 에러 색상 */
+}
+
+/* 2. Text Area 본체 스타일 (테두리/배경 제거) */
+.er-textarea{
+    width: 100%;
+    font-size: 15px;
+    font-family: inherit; /* 래퍼 폰트 상속 */
+    padding: 0; /* 래퍼가 패딩을 관리 */
+    border: none;
+    outline: none;
+    background: transparent;
+    resize: none; /* 크기 조절 핸들 제거 */
+    margin-bottom: 8px; /* 텍스트와 하단 푸터 사이 간격 */
+}
+
+/* 3. Text Area 하단 (아이콘 + 카운터) */
+.er-textarea-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.er-textarea-footer svg {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.er-textarea-footer .er-count {
+  font-size: 14px;
+  color: #888;
+}
+
+/* 에러 메시지 스타일 (필요시) */
+.er-err {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+
+/* --- 고정 푸터 스타일 (기존과 동일) --- */
+.er-footer {
+ 
+  display: flex;
+  gap: 8px;
+  
+  background-color: #ffffff;
+  
+}
+
+.er-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.er-btn.er-ghost {
+  background-color: #f1f3f5;
+  color: #495057;
+}
+
+.er-btn.er-primary {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.er-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
