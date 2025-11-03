@@ -1,14 +1,17 @@
 
 import "./TopHeader.css"
+import logo from "../../assets/logo.svg"
+import { useNavigate } from "react-router-dom";
 
 export default function TopHeader() {
-    
+
+    const navigate = useNavigate();
 
 
 
     return <div className="top-header-con">
         <div className="content">
-       <div className="logo">서비스명</div>
+       <img src={logo} onClick={()=>{navigate("/")}} />
        <div className="log-out">로그아웃</div>
        </div>
     </div>

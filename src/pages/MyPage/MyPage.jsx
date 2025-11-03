@@ -6,6 +6,7 @@ import star_grey from "../../assets/star/star-grey.svg"
 import paper from "../../assets/MyPage/paper.svg"
 import { useNavigate } from "react-router-dom";
 import ChangeName from "./ChangeName"
+import ad from "../../assets/MyPage/ad_my.svg"
 
 import TopHeader from '../../components/layout/TopHeader.jsx'
 
@@ -64,7 +65,7 @@ export default function MyPage() {
          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s",
         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
       ],
-      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
+      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"], // 'tag' (MyPage) -> 'tags' (EditReview)
       "createdAt": "2025-09-30T10:00:00",
       "updatedAt": "2025-09-30T11:00:00"
     },
@@ -133,7 +134,8 @@ export default function MyPage() {
       <div className="my-review">
         <div className="review-header">내가 쓴 리뷰</div>
 
-        <div className="ad">광고배너</div> {/* 광고 넣는 곳 */}
+        <img src={ad} alt="" width="100%" />
+        {/* 광고 */}
 
         <div className="reviews">
 
@@ -178,7 +180,13 @@ export default function MyPage() {
                 ))}
               </div>
               <div className="options">
-                <div className="edit">수정하기</div>
+                {/* [수정] onClick 핸들러 추가: /editreview로 'review' 객체를 state에 담아 전달 */}
+                <div 
+                  className="edit"
+                  onClick={() => nav("/editreview", { state: { review: review } })}
+                >
+                  수정하기
+                </div>
                   <div className="del">삭제하기</div>
                 </div>
 

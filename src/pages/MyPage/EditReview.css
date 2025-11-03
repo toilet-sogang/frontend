@@ -1,0 +1,87 @@
+.er-stars { display: inline-flex; gap: 6px; }
+.er-star {
+  border: 0; background: none; padding: 0;
+  cursor: pointer; line-height: 0;
+}
+
+/* --- 태그 및 장애인 버튼 스타일 --- */
+/* (기존 .er-tag 스타일이 있다면 아래 내용으로 덮어쓰거나 확인하세요) */
+
+.er-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.er-tag {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #e0e0e0;
+  background-color: #f8f9fa; /* 기본 (선택 안 됨) 배경색 */
+  color: #495057; /* 기본 (선택 안 됨) 글자색 */
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.er-tag:hover {
+  background-color: #e9ecef;
+}
+
+/* [핵심] 선택된 태그/버튼 스타일 */
+.er-tag.is-selected {
+  background-color: #0d6efd; /* 선택 시 배경색 (예: 파란색) */
+  color: #ffffff; /* 선택 시 글자색 */
+  border-color: #0d6efd; /* 선택 시 테두리색 */
+  font-weight: 600;
+}
+
+
+/* --- [추가] 별점 위에 표시될 리뷰 정보 스타일 --- */
+.er-review-info {
+display: flex;
+gap: 13px;
+}
+
+.er-field{
+    margin: 0 27px;
+}
+
+.er-review-info h3 {
+  font-size: 23px;
+color: #000;
+font-style: normal;
+font-weight: 400;
+line-height: normal;
+}
+
+.er-review-info p {
+  font-size: 15px;
+  color: #495057;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.er-label-star{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 15px;
+    padding-bottom: 20px;
+}
+
+.er-review-info-divider {
+  margin: 0 6px;
+  color: #ced4da;
+}
+
+/* MyPage.jsx에서 복사한 성별 색상 (필요시) */
+.er-review-info .fe {
+  color: #E13A6E;
+}
+.er-review-info .ma {
+  color: #0D6EFD;
+}
