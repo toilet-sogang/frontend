@@ -10,7 +10,7 @@
     display: flex;
     flex-direction: column;
     gap: 19px;
-    margin-top: 120px;
+    
     margin-left: 13px;
 }
 
@@ -85,16 +85,21 @@
 
 .review-item{
     display: flex;
-    gap:9px;
+    
+    gap:10px;
     flex-direction: column;
     width: 345px;
    border-radius: 20px;
     background: rgba(191, 200, 239, 0.32);
     padding: 13px 16px;
-
+    
+    width: cal(100%-30px);
+    
+    
 }
 
 .review-tags{
+    padding-top: 5px;
     display: flex;
     gap: 5px;
 }
@@ -147,4 +152,42 @@ color: #BD0505;
 }
 .review-header .review-date{
     font-size: 10px;
+}
+
+.review-photos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 한 줄에 2개씩 */
+  /* 사진 사이 간격 */
+  width: 100%; /* 부모 기준으로 채우기 */
+}
+
+.review-photos img {
+  width: 100%;
+  height: 165px;
+  object-fit: cover; /* 비율 유지 + 잘림 */
+  
+}
+
+.options{
+
+    font-size: 10px;
+    display: flex;
+    gap: 13px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    justify-content: flex-end;
+    
+    
+}
+
+.review-header{
+    padding: 15px 15px;
+}
+
+.ad{
+    background-color: #B1B1B1;
+    width: 100%;
+    height: 64px;
+    margin-bottom: 16px;
+    
 }
