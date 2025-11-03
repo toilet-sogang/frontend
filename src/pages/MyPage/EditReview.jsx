@@ -5,6 +5,8 @@ import star_yell from "../../assets/star/star-yell.svg";
 import star_grey from "../../assets/star/star-grey.svg";
 import "./EditReview.css";
 import ad from "../../assets/MyPage/ad_edit.svg";
+// [1. 추가] AlertModal 컴포넌트를 임포트합니다. (경로는 맞게 수정하세요)
+import AlertModal from "../../components/layout/AlertModal";
 
 // 별점 렌더링 함수
 const renderStars = (star, onChange, size = 40) => {
@@ -70,7 +72,7 @@ export default function EditReview() {
 
   useEffect(() => {
     if (!initialReview) {
-      alert("잘못된 접근입니다. 리뷰 정보가 없습니다.");
+      alert("잘못된 접근입니다. 리뷰 정보가 없습니다."); // 페이지 진입 실패 alert는 유지
       nav("/mypage");
     }
   }, [initialReview, nav]);
@@ -92,10 +94,14 @@ export default function EditReview() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // [2. 추가] 모달 팝업창의 열림/닫힘 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const uid = useId();
   const MAX_DESC = 1000;
 
-  // [수정] 태그 3개 제한 로직 추가
+  // [3. 수정] toggleTag 함수
   const toggleTag = (key) => {
     setSelectedTags((prev) => {
       const next = new Set(prev);
@@ -105,13 +111,15 @@ export default function EditReview() {
         next.delete(key);
         return next;
       } else {
-        // 2. 태그를 "추가"하는 경우: 3개 미만일 때만 허용
+        // 2. 태그를 "추가"하는 경우
         if (prev.size < 3) {
+          // 3개 미만이면 추가
           next.add(key);
           return next;
         } else {
-          // 3. 3개일 때 4번째 태그를 추가하려는 경우: 경고창
-          alert("최대 3개까지 선택 가능합니다.");
+          // 3. 3개일 때 4번째 태그를 추가하려는 경우
+          // [수정] alert() 대신 모달을 열도록 상태를 변경
+          setIsModalOpen(true);
           // 4. 상태 변경을 취소하고 "이전" 상태(prev)를 반환
           return prev;
         }
@@ -181,6 +189,13 @@ export default function EditReview() {
 
   return (
     <div className="edit-review-page">
+      {/* [4. 추가] 모달 컴포넌트를 JSX에 렌더링합니다. */}
+      <AlertModal
+        isOpen={isModalOpen}
+        message="최대 3개까지 선택 가능합니다."
+        onClose={() => setIsModalOpen(false)} // "확인" 버튼 클릭 시 모달 닫기
+      />
+
       <TopHeader />
 
       <form id="review-form" className="er-form" onSubmit={handleSubmit} noValidate>
@@ -210,7 +225,7 @@ export default function EditReview() {
 
         <img src={ad} width="100%" alt="" />
 
-        {/* 장애인 화장실 태그 (3개 카운트에서 제외) */}
+        {/* 장애인 화장실 태그 */}
         <div className="er-field">
           <label className="er-label">장애인 화장실에 대한 리뷰라면 클릭!</label>
           <div className="er-tags" role="group" aria-label="장애인 편의시설 선택">
@@ -225,7 +240,7 @@ export default function EditReview() {
           </div>
         </div>
 
-        {/* 긍정 태그 (3개 카운트에 포함) */}
+        {/* 긍정 태그 */}
         <div className="er-field">
           <label className="er-label">만족스러워요</label>
           <div className="er-tags" role="group" aria-label="긍정 리뷰 태그 선택">
@@ -237,7 +252,7 @@ export default function EditReview() {
                   type="button"
                   className={`er-tag ${selected ? "is-selected" : ""}`}
                   aria-pressed={selected}
-                  onClick={() => toggleTag(key)} // 수정된 함수 호출
+                  onClick={() => toggleTag(key)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -253,7 +268,7 @@ export default function EditReview() {
           </div>
         </div>
 
-        {/* 부정 태그 (3개 카운트에 포함) */}
+        {/* 부정 태그 */}
         <div className="er-field">
           <label className="er-label">개선이 필요해요</label>
           <div className="er-tags" role="group" aria-label="부정 리뷰 태그 선택">
@@ -265,7 +280,7 @@ export default function EditReview() {
                   type="button"
                   className={`er-tag ${selected ? "is-selected" : ""}`}
                   aria-pressed={selected}
-                  onClick={() => toggleTag(key)} // 수정된 함수 호출
+                  onClick={() => toggleTag(key)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -316,7 +331,7 @@ export default function EditReview() {
     
       </form>
 
-      {/* 고정 하단 액션 */}
+      {/* 고정 하단 액션 (고정X, 일반 div) */}
       <div className="er-footer">
         <button
           type="button"
