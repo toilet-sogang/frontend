@@ -1,60 +1,125 @@
-import ReviewCard from "../../components/review/ReviewCard"
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './HomePage.css';
 
+import searchIcon from '../../assets/searchbar.svg';
+import TopHeader from '../../components/layout/TopHeader';
 
+const DUMMY_STATION_DATA = [
+  { id: 1, name: '신촌(지하)', line: '2호선', gender: '남자', stars: 5 },
+  { id: 2, name: '신촌(지하)',  line: '2호선', gender: '여자',stars: 5 },
+];
 
-export default function HomePage() {
-    const response =  {
-  "success": true,
-  "code": 200,
-  "message": "리뷰 목록 조회 성공",
-  "data": [
-    {
-      "id": 107,
-      "userId": 22,
-      "userName": "차현서",
-      "description": "처음보다 많이 깨끗해졌어요.",
-      "star": 4.0,
-      "tag": ["TOILET_CLEAN"],
-      "photo": [],
-      "good": 3,
-      "createdAt": "2025-09-20T10:30:00",
-      "updatedAt": "2025-09-29T18:45:00",
-      "isDis": false
-    },
-    {
-      "id": 106,
-      "userId": 18,
-      "userName": "한서정",
-      "description": "냄새가 심했어요.",
-      "star": 2.0,
-      "tag": ["BAD_ODOR", "NO_TOILET_PAPER"],
-      "photo": [],
-      "good": 0,
-      "createdAt": "2025-09-28T21:00:00",
-      "updatedAt": "2025-09-28T21:00:00",
-      "isDis": false
-    },
-    {
-      "id": 105,
-      "userId": 31,
-      "userName": "최윤서",
-      "description": "환기도 잘되고, 핸드워시도 충분해서 좋았어요.",
-      "star": 5.0,
-      "tag": ["GOOD_VENTILATION", "ENOUGH_HANDSOAP"],
-      "photo": ["review_105_img1.jpg"],
-      "good": 7,
-      "createdAt": "2025-09-25T09:15:00",
-      "updatedAt": "2025-09-25T09:15:00",
-      "isDis": false
+function HomePage() {
+
+  const navigate = useNavigate();
+
+  // 3. 검색어와 검색 결과를 state로 관리
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+  // 4. 검색창 입력 시 호출될 함수
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchTerm(query);
+
+    // 입력값이 '신촌'을 포함할 때만 더미데이터 필터링 (요청 사항)
+    if (query.trim() !== '' && query.includes('신촌')) {
+      const filteredResults = DUMMY_STATION_DATA.filter((station) =>
+        station.name.includes(query)
+      );
+      setSearchResults(filteredResults);
+    } else {
+      // 그 외의 경우 (비어있거나 '신촌'이 아니면) 결과창 숨김
+      setSearchResults([]);
     }
-  ]
-};
+  };
 
-const reviews = response.data;
+  const renderStars = (startCount) => {
+    return '⭐'. repeat(startCount);
+  };
+  
+  // 네이버 지도로 이동하는 함수 (예시)
+  const openNaverMap = () => {
+    // 특정 좌표나 검색어로 네이버 지도 앱/웹을 여는 URL 스킴
+    // 여기서는 예시로 네이버 지도 메인으로 연결합니다.
+    window.open('https://map.naver.com/', '_blank');
+  };
 
+  const handleStationClick = (stationId) => {
+    navigate(`/review/${stationId}`);
+  };
 
-    return<div>HomePage
-        <ReviewCard reviews={reviews}/>
+  return (
+    <div className="Home-page">
+      <TopHeader />
+    <div className="home-container">
+      {/* 2. 검색 섹션: 검색창 + 검색 버튼 */}
+      <div className="search-wrapper">
+      <section className="search-section">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="역 이름 검색하기"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+        <button className="search-button">
+          <img src={searchIcon} alt="검색" />
+        </button>
+      </section>
+      {/* 6. 검색 결과 박스 (searchResults에 내용이 있을 때만 보임) */}
+        {searchResults.length > 0 && (
+          <ul className="search-results">
+            {searchResults.map((result) => (
+              <li key={result.id} className="result-item" onClick={() => handleStationClick(result.id)}>
+                <span className="result-name">{result.name}</span>
+                <div className="result-details">
+                  <span className="result-info">
+                    {result.line} · 
+                    <span className={result.gender === '남자' ? 'gender-male' : 'gender-female'}>
+                      {result.gender}
+                    </span>
+                  </span>
+                <span className="result-star-icons">{renderStars(result.stars)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div> {/* .search-wrapper 끝 */}
 
+      {/* 3. 네이버 지도로 찾기 */}
+      <section className="map-link-section">
+        <h3>혹시 이 역을 찾고 계시나요?</h3>
+        <button className="map-link-button" onClick={openNaverMap}>
+          네이버지도 앱으로 보기
+        </button>
+      </section>
+
+      {/* 4. 근처 역 추천 (4개) */}
+      <section className="nearby-stations-section">
+        <ul className="nearby-stations-list">
+          <li className="station-item">
+            <span className="station-item-name">신촌(지하)</span>
+          </li>
+          <li className="station-item">
+            <span className="station-item-name">홍대입구</span>
+          </li>
+          <li className="station-item">
+            <span className="station-item-name">이대</span>
+          </li>
+        </ul>
+      </section>
+
+      {/* 5. 광고 배너 */}
+      <footer className="ad-banner">
+        광고가 표시되는 영역입니다.
+      </footer>
+      
     </div>
+  </div>
+  );
 }
+
+export default HomePage;
