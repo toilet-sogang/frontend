@@ -10,6 +10,7 @@ import SignupPage from './pages/MyPage/SignupPage';
 import ChangeName from './pages/MyPage/ChangeName';
 import EditReview from './pages/MyPage/EditReview';
 import ScrollToTop from './components/layout/ScrollToTop';
+import ToiletDetailPage from './pages/Detail/ToiletDetailPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/changename" element={<ChangeName />} />
         <Route path="/editreview" element={<EditReview />} />
+        <Route path="/review/:stationId" element={<ToiletDetailPage />} />
       </Routes>
     
       <Navbar />
