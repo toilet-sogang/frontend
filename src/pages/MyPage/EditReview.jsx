@@ -69,10 +69,34 @@ export default function EditReview() {
 
   const initialReview = location.state?.review;
 
+  // === ⬇️ MODIFIED MODAL STATE ⬇️ ===
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // [신규] 모달에 표시될 메시지를 state로 관리
+  const [modalMessage, setModalMessage] = useState("");
+  // [신규] 모달이 닫힌 "후"에 실행할 동작(예: 페이지 이동)을 state로 관리
+  const [modalCloseAction, setModalCloseAction] = useState(null);
+
+  // [신규] 모달 닫기 공통 핸들러
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setModalMessage("");
+    // 모달 닫기 액션이 설정되어 있다면 실행
+    if (typeof modalCloseAction === 'function') {
+      modalCloseAction();
+    }
+    setModalCloseAction(null); // 액션 초기화
+  };
+  // === ⬆️ MODIFIED MODAL STATE ⬆️ ===
+
   useEffect(() => {
     if (!initialReview) {
-      alert("잘못된 접근입니다. 리뷰 정보가 없습니다."); // 페이지 진입 실패 alert는 유지
-      nav("/mypage");
+      // [수정] alert -> modal
+      // alert("잘못된 접근입니다. 리뷰 정보가 없습니다.");
+      setModalMessage("잘못된 접근입니다. 리뷰 정보가 없습니다.");
+      // [수정] 모달이 닫히면 /mypage로 이동하도록 액션 설정
+      setModalCloseAction(() => () => nav("/mypage"));
+      setIsModalOpen(true);
+      // nav("/mypage"); // <-- 모달이 닫힌 후에 실행되도록 위로 이동
     }
   }, [initialReview, nav]);
 
@@ -91,23 +115,17 @@ export default function EditReview() {
     )
   );
 
-  // === ⬇️ MODIFIED PHOTO STATE ⬇️ ===
-  // 1. 기존 사진 (서버에서 받은 {id, url} 객체 배열)
   const [existingPhotos, setExistingPhotos] = useState(
-    initialReview?.photo ?? [] // [FIX] 이제 {id, url} 객체 배열이 바로 저장됩니다.
+    initialReview?.photo ?? []
   );
-  // 2. 새로 추가한 사진 (File 객체와 미리보기 URL)
-  const [newPhotos, setNewPhotos] = useState([]); // { file: File, preview: string }[]
-  // 3. 삭제하기로 선택한 기존 사진 (서버로 보낼 ID 목록)
-  const [deletedPhotos, setDeletedPhotos] = useState([]); // [FIX] 이제 number[] (ID 목록)을 저장합니다.
+  const [newPhotos, setNewPhotos] = useState([]);
+  const [deletedPhotos, setDeletedPhotos] = useState([]);
 
   const fileInputRef = useRef(null);
-  const MAX_PHOTOS = 2; // (예시) 최대 2장으로 가정
-  // === ⬆️ MODIFIED PHOTO STATE ⬆️ ===
+  const MAX_PHOTOS = 2;
 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const uid = useId();
   const MAX_DESC = 1000;
 
@@ -122,6 +140,8 @@ export default function EditReview() {
           next.add(key);
           return next;
         } else {
+          // [수정] 하드코딩된 메시지 대신 state에 메시지 설정
+          setModalMessage("최대 3개까지 선택 가능합니다.");
           setIsModalOpen(true);
           return prev;
         }
@@ -138,12 +158,13 @@ export default function EditReview() {
     return Object.keys(next).length === 0;
   };
 
-  // === ⬇️ NEW PHOTO HANDLERS ⬇️ ===
-
   /** 1. 숨겨진 파일 입력창을 클릭합니다. */
   const handlePhotoUploadClick = () => {
     if (existingPhotos.length + newPhotos.length >= MAX_PHOTOS) {
-      alert(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
+      // [수정] alert -> modal
+      // alert(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
+      setModalMessage(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
+      setIsModalOpen(true);
       return;
     }
     fileInputRef.current?.click();
@@ -158,7 +179,10 @@ export default function EditReview() {
     const remainingSlots = MAX_PHOTOS - currentTotal;
 
     if (files.length > remainingSlots) {
-      alert(`최대 ${MAX_PHOTOS}장까지 업로드 가능합니다.`);
+      // [수정] alert -> modal
+      // alert(`최대 ${MAX_PHOTOS}장까지 업로드 가능합니다.`);
+      setModalMessage(`최대 ${MAX_PHOTOS}장까지 업로드 가능합니다.`);
+      setIsModalOpen(true);
     }
 
     // 추가할 파일만 잘라내어 미리보기 URL 생성
@@ -169,31 +193,24 @@ export default function EditReview() {
 
     setNewPhotos((prev) => [...prev, ...filesToAdd]);
 
-    // 중요: input 값을 비워야 동일한 파일을 다시 선택할 수 있습니다.
     if (event.target) {
       event.target.value = null;
     }
   };
 
-  // === ⬇️ MODIFIED handleDeleteExisting ⬇️ ===
   /** 3. 기존 사진 삭제 (X 버튼 클릭) */
   const handleDeleteExisting = (idToDelete) => {
-    // [FIX] UI에서 고유 ID를 기준으로 제거
     setExistingPhotos((prev) =>
       prev.filter((photo) => photo.id !== idToDelete)
     );
-    // [FIX] 삭제 목록(서버 전송용)에는 'ID'를 추가
     setDeletedPhotos((prev) => [...prev, idToDelete]);
   };
-  // === ⬆️ MODIFIED handleDeleteExisting ⬆️ ===
 
   /** 4. 새로 추가한 사진 삭제 (X 버튼 클릭) */
   const handleDeleteNew = (indexToRemove) => {
     setNewPhotos((prev) => {
       const newArray = [...prev];
       const [removedPhoto] = newArray.splice(indexToRemove, 1);
-
-      // 메모리 누수 방지를 위해 생성했던 Object URL 해제
       if (removedPhoto) {
         URL.revokeObjectURL(removedPhoto.preview);
       }
@@ -206,83 +223,74 @@ export default function EditReview() {
     return () => {
       newPhotos.forEach((photo) => URL.revokeObjectURL(photo.preview));
     };
-  }, [newPhotos]); // newPhotos 배열 자체가 변경될 때만 실행
+  }, [newPhotos]); 
 
-  // === ⬆️ NEW PHOTO HANDLERS ⬆️ ===
-
-  // === ⬇️ MODIFIED handleSubmit ⬇️ ===
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate() || !initialReview) return;
 
     setSubmitting(true);
-
-    // --- API 업로드 준비 (multipart/form-data) ---
     const formData = new FormData();
 
-    // 1. 텍스트 및 기본 데이터 추가
     formData.append("star", Number(star));
     formData.append("desc", desc.trim());
     formData.append("is_disability", Boolean(isDisability));
-    
-    // 배열(Set)은 JSON 문자열로 변환하여 전송 (백엔드와 협의 필요)
     formData.append("tags", JSON.stringify(Array.from(selectedTags)));
-
-    // 2. 삭제할 이미지 ID 목록 (requestString)
-    // [FIX] deletedPhotos는 이제 ID 목록(number[])이므로 
-    // API 명세("삭제할 이미지 id 목록")와 일치합니다.
     formData.append("requestString", JSON.stringify(deletedPhotos));
-
-    // 3. 새로 추가할 이미지 파일 목록 (photosList)
     newPhotos.forEach((photo) => {
-      // "photosList"라는 키로 File 객체를 추가
       formData.append("photosList", photo.file, photo.file.name);
     });
 
-    // --- (여기까지가 API 전송 준비입니다) ---
-    
-    // [임시] API가 준비되지 않았으므로, 1초 딜레이 후 성공으로 간주
     try {
       console.log("--- 폼 데이터 전송 준비 완료 (API 연동 대기) ---");
-      console.log("Star:", formData.get("star"));
-      console.log("Desc:", formData.get("desc"));
-      console.log("Disability:", formData.get("is_disability"));
-      console.log("Tags:", formData.get("tags"));
-      console.log("Deleted (requestString):", formData.get("requestString")); // [1, 2]와 같이 ID가 출력됩니다.
-      console.log("New Files (photosList):", formData.getAll("photosList"));
+      // ... (console.log 생략) ...
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
-
-      // --- 기존 성공 로직 ---
-      alert("리뷰가 수정되었습니다. (API 연동 대기)");
-      nav(-1);
+      // [수정] alert -> modal
+      // alert("리뷰가 수정되었습니다. (API 연동 대기)");
+      setModalMessage("리뷰가 수정되었습니다. (API 연동 대기)");
+      // [수정] 모달이 닫히면 이전 페이지(-1)로 이동하도록 액션 설정
+      setModalCloseAction(() => () => nav(-1));
+      setIsModalOpen(true);
+      // nav(-1); // <-- 모달이 닫힌 후에 실행되도록 위로 이동
 
     } catch (err) {
       console.error(err);
-      alert(`수정 중 오류가 발생했습니다: ${err.message}`);
+      // [수정] alert -> modal
+      // alert(`수정 중 오류가 발생했습니다: ${err.message}`);
+      setModalMessage(`수정 중 오류가 발생했습니다: ${err.message}`);
+      setIsModalOpen(true);
     } finally {
       setSubmitting(false);
     }
   };
-  // === ⬆️ MODIFIED handleSubmit ⬆️ ===
 
   if (!initialReview) {
+    // 이 컴포넌트는 useEffect의 모달 + 리다이렉트가 실행될 때까지
+    // 잠시 렌더링될 수 있으므로, 로딩 상태를 반환합니다.
     return (
       <div className="edit-review-page">
         <TopHeader />
         <p style={{ padding: "20px", textAlign: "center" }}>
           리뷰 정보를 불러오는 중...
         </p>
+        {/* [수정] 모달 렌더링 로직을 여기에도 추가 (필수) */}
+        <AlertModal
+          isOpen={isModalOpen}
+          message={modalMessage}
+          onClose={handleModalClose}
+        />
       </div>
     );
   }
 
   return (
     <div className="edit-review-page">
+      {/* [수정] AlertModal props를 동적으로 변경 */}
       <AlertModal
         isOpen={isModalOpen}
-        message="최대 3개까지 선택 가능합니다."
-        onClose={() => setIsModalOpen(false)}
+        message={modalMessage}
+        onClose={handleModalClose}
       />
 
       <TopHeader />
@@ -393,25 +401,20 @@ export default function EditReview() {
           
           <div className={`er-textarea-wrapper ${errors.desc ? "er-input-err" : ""}`}>
             
-            {/* === ⬇️ MODIFIED Photo Preview Area ⬇️ === */}
             <div className="er-photo-previews">
-              {/* 1. Existing Photos */}
-              {/* [FIX] {id, url} 객체 배열을 순회합니다. */}
               {existingPhotos.map((photo) => (
                 <div key={photo.id} className="er-preview-item">
                   <img src={photo.url} alt="기존 이미지" className="er-preview-img" />
                   <button
                     type="button"
                     className="er-preview-delete"
-                    onClick={() => handleDeleteExisting(photo.id)} // [FIX] ID만 전달
+                    onClick={() => handleDeleteExisting(photo.id)}
                     aria-label="기존 이미지 삭제"
                   >
                     ×
                   </button>
                 </div>
               ))}
-
-              {/* 2. New Photo Previews */}
               {newPhotos.map((photo, index) => (
                 <div key={index} className="er-preview-item">
                   <img src={photo.preview} alt="새 이미지 미리보기" className="er-preview-img" />
@@ -426,7 +429,6 @@ export default function EditReview() {
                 </div>
               ))}
             </div>
-            {/* === ⬆️ MODIFIED Photo Preview Area ⬆️ === */}
 
             <textarea
               id={`${uid}-desc`}
@@ -471,7 +473,6 @@ export default function EditReview() {
     
       </form>
 
-      {/* 고정 하단 액션 (고정X, 일반 div) */}
       <div className="er-footer">
         <button
           type="button"

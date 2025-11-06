@@ -1,6 +1,7 @@
 // src/pages/MyPage/LoginPage.jsx (경로 확인)
 
 import './LoginPage.css';
+import TopHeader from '../../components/layout/TopHeader';
 // import { useNavigate } from 'react-router-dom'; // <a> 태그를 사용하므로 useNavigate는 필요 없습니다.
 
 export default function LoginPage() {
@@ -13,7 +14,10 @@ export default function LoginPage() {
     const NAVER_LOGIN_URL = `${BACKEND_URL}/oauth2/authorization/naver`;
 
     return (
+        <div className="login-con">
+             <TopHeader/>
         <div className="container">
+           
             <div className="login-con">
                 {/* [수정]
                   API 호출(fetch/axios)이 아닌, <a> 태그를 사용한 페이지 이동으로 변경합니다.
@@ -28,5 +32,6 @@ export default function LoginPage() {
 
             </div>
         </div>
+         </div>
     );
 }
