@@ -13,18 +13,27 @@ cursor: pointer;
 ;
 }
 
+.login-con{
+    width: 100%;
+    height: 100%;
+}
+
 .container{
     height: 100%;
     display: flex;
+    
     align-items: center;
     justify-content: center;
+    margin-top: 30vh;
+
    
 }
 
 .login-con{
    
     display: inline-block;
-    margin-bottom:83px;
+    text-align: center;
+    
 
 }
 
