@@ -10,6 +10,13 @@ const DUMMY_STATION_DATA = [
   { id: 2, name: '신촌(지하)',  line: '2호선', gender: '여자',stars: 5 },
 ];
 
+// 예시 데이터 (실제로는 props나 API 응답으로 받아야 함)
+const nearbyStations = [
+  { id: 1, name: "신촌(지하)" },
+  { id: 2, name: "홍대입구" },
+  { id: 3, name: "이대" },
+];
+
 function HomePage() {
 
   const navigate = useNavigate();
@@ -97,20 +104,23 @@ function HomePage() {
         </button>
       </section>
 
-      {/* 4. 근처 역 추천 (4개) */}
       <section className="nearby-stations-section">
-        <ul className="nearby-stations-list">
-          <li className="station-item">
-            <span className="station-item-name">신촌(지하)</span>
+      <ul className="nearby-stations-list">
+        {/* 4. 예시 데이터를 map()으로 반복 렌더링합니다. */}
+        {nearbyStations.map((station) => (
+          <li
+            key={station.id}
+            className="station-item"
+            // 5. onClick 이벤트를 추가합니다.
+            onClick={() => handleStationClick(station.id)}
+            style={{ cursor: 'pointer' }} // 클릭 가능하게 마우스 커서 변경
+          >
+            <span className="station-item-name">{station.name}</span>
           </li>
-          <li className="station-item">
-            <span className="station-item-name">홍대입구</span>
-          </li>
-          <li className="station-item">
-            <span className="station-item-name">이대</span>
-          </li>
-        </ul>
-      </section>
+        ))}
+      </ul>
+    </section>
+  
 
       {/* 5. 광고 배너 */}
       <footer className="ad-banner">

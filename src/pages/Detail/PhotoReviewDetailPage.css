@@ -1,0 +1,103 @@
+/* PhotoReviewDetailPage.css */
+
+.photo-review-detail-page {
+  background-color: #fff;
+  min-height: 100vh;
+}
+
+/* 1. 사진 캐러셀 (가로 스크롤) */
+.prdp-photo-list {
+  display: flex;
+  overflow-x: auto; /* 핵심: 가로 스크롤 */
+  gap: 8px; /* 사진 사이 간격 */
+  padding: 16px;
+  background-color: #f8f8f8; /* 사진 배경색 */
+  
+  /* 스크롤바 숨기기 (선택 사항) */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.prdp-photo-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.prdp-photo-item {
+  width: 80vw; /* 화면 너비의 80% */
+  height: 80vw; /* 1:1 정사각형 */
+  max-width: 300px; /* 최대 크기 제한 */
+  max-height: 300px;
+  
+  flex-shrink: 0; /* 아이템이 줄어들지 않도록 */
+  object-fit: cover; /* 이미지가 잘리지 않고 꽉 차도록 */
+  border-radius: 8px;
+  background-color: #eee;
+}
+
+/* 사진이 없을 때 예외 처리 */
+.prdp-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/* 2. 리뷰 상세 내용 컨테이너 */
+.prdp-content-container {
+  padding: 20px 24px;
+}
+
+/* 유저 정보 (이름 + 별점) */
+.prdp-user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prdp-user-name {
+  font-size: 18px;
+  font-weight: 600; /* 굵게 */
+}
+
+/* 별점 (renderStars에서 생성됨) */
+.prdp-rating {
+  display: flex;
+  gap: 2px;
+}
+.prdp-star-icon {
+  width: 18px; /* 별 아이콘 크기 */
+  height: 18px;
+}
+
+/* 태그 (WriteReviewPage.css .er-tag 스타일 차용) */
+.prdp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.prdp-tag {
+  padding: 6px 10px; /* .er-tag보다 조금 더 여유있게 */
+  border-radius: 50px;
+  background: #EAEDF9;
+  border: none;
+  color: #494949;
+  font-size: 11px;
+}
+
+/* 리뷰 본문 */
+.prdp-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+  margin: 0 0 16px 0;
+  white-space: pre-wrap; /* 줄바꿈(\n) 적용 */
+}
+
+/* 작성일 */
+.prdp-date {
+  font-size: 12px;
+  color: #888;
+}

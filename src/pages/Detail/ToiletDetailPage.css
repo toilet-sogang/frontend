@@ -10,21 +10,21 @@
 
 .toilet-header {
   display: flex;
-  align-items: baseline; /* 이름과 호선 정보의 세로 정렬 맞춤 */
-  gap: 8px;
+  align-items: center; /* 이름과 호선 정보의 세로 정렬 맞춤 */
+  gap: 20px;
   margin-bottom: 8px;
 }
 
 .toilet-name {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 400;
   margin: 0;
 }
 
 .toilet-info {
   font-size: 16px;
   font-weight: 500;
-  color: #555;
+  color: #595757;
 }
 
 .toilet-rating {
@@ -34,9 +34,8 @@
   margin-bottom: 12px;
 }
 
-.star-icons {
-  font-size: 20px;
-  letter-spacing: 1px;
+.star-icon {
+  width: 20px;
 }
 
 .star-number {
@@ -58,18 +57,18 @@
 /* -------------------- */
 .ai-summary {
   margin-top: 20px;
-  border: 1px solid #e0e0e0;
+  border: none;
   border-radius: 8px;
   overflow: hidden; /* radius 적용을 위해 */
 }
 
 .ai-summary-toggle {
-  background-color: #f9f9f9;
+  background-color: #fff;
   border: none;
   padding: 14px 16px;
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
   align-items: center;
   cursor: pointer;
   font-size: 16px;
@@ -81,8 +80,8 @@
   font-size: 15px;
   line-height: 1.6;
   color: #444;
-  background-color: #fff;
-  border-top: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: rgba(191, 200, 239, 0.32);
 }
 
 /* -------------------- */
@@ -101,53 +100,114 @@
 
 .review-tabs {
   display: flex;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #eee;
 }
 
 .tab-item {
-  font-size: 18px;
-  font-weight: 600;
-  color: #888;
-  padding-bottom: 10px;
-  cursor: pointer;
-}
-
-.tab-item.active {
-  color: #000;
-  border-bottom: 2px solid #000;
-}
-
-.photo-review-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.photo-button,
-.photo-button-more {
-  flex: 1; /* 버튼이 공간을 나눠 가짐 */
-  padding: 12px;
   font-size: 15px;
   font-weight: 500;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
+  color: #fff;
+  padding: 10px;
   cursor: pointer;
+  border-radius: 20px;
+  background: #627EF1;
+  border: none;
+  width: 150px;
 }
 
-.photo-button-more {
-  background-color: #f5f5f5;
-  border-color: #f5f5f5;
+.tab-item-active {
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
 }
+
+/* 전체 섹션 컨테이너입니다. 
+  이제 flex 방향이 수직(column)이 됩니다.
+*/
+.photo-review-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 헤더, 사진, 버튼 사이의 간격 */
+}
+
+/* 1. '포토리뷰 보기' 헤더 스타일 */
+.photo-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 16px; /* 안쪽 여백 */
+  
+  /* 요청하신 스타일 */
+  border-radius: 5px;
+  background: #BFC8EF;
+
+  width: 150px;
+  box-sizing: border-box;
+
+  /* 텍스트 스타일 (예시) */
+  font-weight: 400;
+  font-size: 15px;
+  color: #000;
+}
+
+/* 2. '포토들' 예시 리스트 스타일 (부모 컨테이너) */
+.photo-list-example {
+  display: flex; /* 자식 요소(사각형)들을 가로로 나란히 배치 */
+  overflow-x: auto; /* 4개 이상일 때 가로 스크롤 (유지) */
+  padding: 0px 0;
+  /* border-right를 사용하므로 gap은 제거합니다. */
+  /* gap: 8px; */
+}
+
+/* 3. 개별 포토 아이템 (div 사각형) */
+.photo-example-item {
+  /* 요청하신 CSS 속성 */
+  width: 82px;
+  height: 82px;
+  flex-shrink: 0; /* 컨테이너가 줄어들어도 아이템 크기 유지 */
+  border-right: 1px solid rgba(0, 0, 0, 0.55);
+  background: #D9D9D9;
+}
+
+/* (선택 사항이지만 추천)
+  제일 마지막 사각형의 오른쪽 테두리는 필요 없을 수 있으므로 제거합니다.
+*/
+.photo-example-item:last-child {
+  border-right: none;
+}
+
+/* 3. '더보기' 버튼을 오른쪽 정렬하기 위한 컨테이너 */
+.photo-more-container {
+  display: flex;
+  justify-content: flex-end; /* 내부 아이템을 오른쪽 끝으로 보냄 */
+}
+
+/* 4. '포토리뷰 더보기' 버튼 스타일 */
+.photo-button-more {
+  /* 요청하신 스타일 (배경 없음) */
+  background: none;
+  
+  /* 테두리 및 기본 스타일 제거 */
+  border: none;
+  outline: none;
+  
+  /* 클릭 영역과 가독성을 위한 추천 스타일 */
+  padding: 8px; 
+  color: #000; /* 텍스트 색상 (너무 튀지 않게) */
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 15px;
+}
+
 
 .review-filters {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-bottom: 16px;
+  margin-top: 30px;
 }
 
 .review-filters select {
@@ -156,8 +216,31 @@
   border: 1px solid #ccc;
   font-size: 14px;
   background-color: #fff;
+  color: #000;
 }
 
 .review-card-list {
   /* ReviewCard 컴포넌트가 이 안에 렌더링됩니다. */
+}
+
+/* "리뷰 더보기" 버튼을 오른쪽 정렬하기 위한 컨테이너 */
+.review-more-container {
+  display: flex;
+  justify-content: flex-end; /* 버튼을 오른쪽 끝으로 */
+  padding: 8px 0;
+  margin-top: 8px; /* 리뷰 목록과의 간격 */
+}
+
+/* "리뷰 더보기" 버튼 스타일
+   (photo-button-more와 유사하게) 
+*/
+.review-more-button {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 8px;
+  color: #000; /* 텍스트 색상 (디자인에 맞게 조절) */
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 15px;
 }

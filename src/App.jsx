@@ -11,6 +11,10 @@ import ChangeName from './pages/MyPage/ChangeName';
 import EditReview from './pages/MyPage/EditReview';
 import ScrollToTop from './components/layout/ScrollToTop';
 import ToiletDetailPage from './pages/Detail/ToiletDetailPage';
+import WriteReviewPage from './pages/Detail/WriteReviewPage';
+import AllReviewsPage from './pages/Detail/AllReviewsPage';
+import PhotoReviewsPage from './pages/Detail/PhotoReviewsPage';
+import PhotoReviewDetailPage from './pages/Detail/PhotoReviewDetailPage';
 
 function App() {
   return (
@@ -25,6 +29,10 @@ function App() {
         <Route path="/changename" element={<ChangeName />} />
         <Route path="/editreview" element={<EditReview />} />
         <Route path="/review/:stationId" element={<ToiletDetailPage />} />
+        <Route path="/review/:stationId/reviews" element={<AllReviewsPage />} />
+        <Route path="/review/:stationId/write" element={<WriteReviewPage />} />
+        <Route path="/review/:stationId/photos" element={<PhotoReviewsPage />} />
+        <Route path="/review/:stationId/photos/detail" element={<PhotoReviewDetailPage />} />
       </Routes>
     
       <Navbar />
