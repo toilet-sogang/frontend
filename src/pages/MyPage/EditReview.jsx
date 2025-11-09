@@ -7,6 +7,10 @@ import "./EditReview.css";
 import ad from "../../assets/MyPage/ad_edit.svg";
 import AlertModal from "../../components/layout/AlertModal";
 
+// ⭐ 백엔드 설정
+const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
+const BACKEND_ON = false; // 실제 서버 붙일 땐 true 로!
+
 // 별점 렌더링 함수
 const renderStars = (star, onChange, size = 40) => {
   return (
@@ -58,7 +62,6 @@ const tagMap = {
 };
 
 const TAG_KEYS = Object.keys(tagMap);
-// 앞의 5개 = 긍정, 6번째부터 = 부정
 const POSITIVE_TAG_KEYS = TAG_KEYS.slice(0, 5);
 const NEGATIVE_TAG_KEYS = TAG_KEYS.slice(5);
 
@@ -68,34 +71,25 @@ export default function EditReview() {
 
   const initialReview = location.state?.review;
 
-  // === ⬇️ MODIFIED MODAL STATE ⬇️ ===
+  // 🔹 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // [신규] 모달에 표시될 메시지를 state로 관리
   const [modalMessage, setModalMessage] = useState("");
-  // [신규] 모달이 닫힌 "후"에 실행할 동작(예: 페이지 이동)을 state로 관리
   const [modalCloseAction, setModalCloseAction] = useState(null);
 
-  // [신규] 모달 닫기 공통 핸들러
   const handleModalClose = () => {
     setIsModalOpen(false);
     setModalMessage("");
-    // 모달 닫기 액션이 설정되어 있다면 실행
-    if (typeof modalCloseAction === 'function') {
+    if (typeof modalCloseAction === "function") {
       modalCloseAction();
     }
-    setModalCloseAction(null); // 액션 초기화
+    setModalCloseAction(null);
   };
-  // === ⬆️ MODIFIED MODAL STATE ⬆️ ===
 
   useEffect(() => {
     if (!initialReview) {
-      // [수정] alert -> modal
-      // alert("잘못된 접근입니다. 리뷰 정보가 없습니다.");
       setModalMessage("잘못된 접근입니다. 리뷰 정보가 없습니다.");
-      // [수정] 모달이 닫히면 /mypage로 이동하도록 액션 설정
       setModalCloseAction(() => () => nav("/mypage"));
       setIsModalOpen(true);
-      // nav("/mypage"); // <-- 모달이 닫힌 후에 실행되도록 위로 이동
     }
   }, [initialReview, nav]);
 
@@ -139,7 +133,6 @@ export default function EditReview() {
           next.add(key);
           return next;
         } else {
-          // [수정] 하드코딩된 메시지 대신 state에 메시지 설정
           setModalMessage("최대 3개까지 선택 가능합니다.");
           setIsModalOpen(true);
           return prev;
@@ -152,16 +145,15 @@ export default function EditReview() {
     const next = {};
     if (!star || star < 1) next.star = "별점을 선택하세요.";
     if (!desc.trim()) next.desc = "리뷰를 작성해주세요.";
-    if (desc.length > MAX_DESC) next.desc = `설명은 ${MAX_DESC}자 이내로 입력하세요.`;
+    if (desc.length > MAX_DESC)
+      next.desc = `설명은 ${MAX_DESC}자 이내로 입력하세요.`;
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  /** 1. 숨겨진 파일 입력창을 클릭합니다. */
+  /** 파일 업로드 버튼 */
   const handlePhotoUploadClick = () => {
     if (existingPhotos.length + newPhotos.length >= MAX_PHOTOS) {
-      // [수정] alert -> modal
-      // alert(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
       setModalMessage(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
       setIsModalOpen(true);
       return;
@@ -169,7 +161,7 @@ export default function EditReview() {
     fileInputRef.current?.click();
   };
 
-  /** 2. 파일이 선택되면 상태에 추가합니다. */
+  /** 파일 선택 시 */
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
@@ -178,16 +170,13 @@ export default function EditReview() {
     const remainingSlots = MAX_PHOTOS - currentTotal;
 
     if (files.length > remainingSlots) {
-      // [수정] alert -> modal
-      // alert(`최대 ${MAX_PHOTOS}장까지 업로드 가능합니다.`);
       setModalMessage(`최대 ${MAX_PHOTOS}장까지 업로드 가능합니다.`);
       setIsModalOpen(true);
     }
 
-    // 추가할 파일만 잘라내어 미리보기 URL 생성
     const filesToAdd = files.slice(0, remainingSlots).map((file) => ({
       file: file,
-      preview: URL.createObjectURL(file), // 미리보기를 위한 임시 URL
+      preview: URL.createObjectURL(file),
     }));
 
     setNewPhotos((prev) => [...prev, ...filesToAdd]);
@@ -197,7 +186,7 @@ export default function EditReview() {
     }
   };
 
-  /** 3. 기존 사진 삭제 (X 버튼 클릭) */
+  /** 기존 사진 삭제 */
   const handleDeleteExisting = (idToDelete) => {
     setExistingPhotos((prev) =>
       prev.filter((photo) => photo.id !== idToDelete)
@@ -205,7 +194,7 @@ export default function EditReview() {
     setDeletedPhotos((prev) => [...prev, idToDelete]);
   };
 
-  /** 4. 새로 추가한 사진 삭제 (X 버튼 클릭) */
+  /** 새로 추가한 사진 삭제 */
   const handleDeleteNew = (indexToRemove) => {
     setNewPhotos((prev) => {
       const newArray = [...prev];
@@ -217,46 +206,119 @@ export default function EditReview() {
     });
   };
 
-  /** 5. 컴포넌트가 사라질 때 생성된 모든 미리보기 URL을 해제합니다. */
+  /** 언마운트 시 미리보기 URL 해제 */
   useEffect(() => {
     return () => {
       newPhotos.forEach((photo) => URL.revokeObjectURL(photo.preview));
     };
-  }, [newPhotos]); 
+  }, [newPhotos]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate() || !initialReview) return;
 
-    setSubmitting(true);
-    const formData = new FormData();
+    // 🔹 백엔드 OFF: 기존처럼 mock 처리
+    if (!BACKEND_ON) {
+      try {
+        setSubmitting(true);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setModalMessage("리뷰가 수정되었습니다. (mock 모드)");
+        setModalCloseAction(() => () => nav(-1));
+        setIsModalOpen(true);
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
 
-    formData.append("star", Number(star));
-    formData.append("desc", desc.trim());
-    formData.append("is_disability", Boolean(isDisability));
-    formData.append("tags", JSON.stringify(Array.from(selectedTags)));
-    formData.append("requestString", JSON.stringify(deletedPhotos));
-    newPhotos.forEach((photo) => {
-      formData.append("photosList", photo.file, photo.file.name);
-    });
+    // 🔹 백엔드 ON: 실제 API 호출
+    if (!API_URL) {
+      setModalMessage("백엔드 URL이 설정되지 않았습니다.");
+      setIsModalOpen(true);
+      return;
+    }
+
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      setModalMessage("로그인 정보가 없습니다. 다시 로그인해주세요.");
+      setIsModalOpen(true);
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
-      console.log("--- 폼 데이터 전송 준비 완료 (API 연동 대기) ---");
-      // ... (console.log 생략) ...
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // 1) 리뷰 내용 수정 PATCH /user/review/{reviewId}
+      const reviewPayload = {
+        star: Number(star),
+        desc: desc.trim(),
+        tags: Array.from(selectedTags),
+        is_disability: Boolean(isDisability),
+      };
 
-      // [수정] alert -> modal
-      // alert("리뷰가 수정되었습니다. (API 연동 대기)");
-      setModalMessage("리뷰가 수정되었습니다. (API 연동 대기)");
-      // [수정] 모달이 닫히면 이전 페이지(-1)로 이동하도록 액션 설정
+      const reviewRes = await fetch(
+        `${API_URL}/user/review/${initialReview.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(reviewPayload),
+        }
+      );
+
+      const reviewData = await reviewRes.json().catch(() => ({}));
+      if (!reviewRes.ok || reviewData?.success === false) {
+        throw new Error(
+          reviewData?.message || "리뷰 수정 중 오류가 발생했습니다."
+        );
+      }
+
+      // 2) 이미지 수정 PATCH /user/review/{reviewId}/photos
+      if (newPhotos.length > 0 || deletedPhotos.length > 0) {
+        const formData = new FormData();
+
+        // 추가되는 이미지
+        newPhotos.forEach((photo) => {
+          formData.append("photos", photo.file, photo.file.name);
+        });
+
+        // 삭제할 이미지 id 목록
+        const requestBody = {
+          deleteImageIds: deletedPhotos,
+        };
+        formData.append("request", JSON.stringify(requestBody));
+
+        const photosRes = await fetch(
+          `${API_URL}/user/review/${initialReview.id}/photos`,
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              // ⚠️ 'Content-Type' 은 브라우저가 boundary 포함해서 자동 세팅하도록 둠
+            },
+            body: formData,
+          }
+        );
+
+        const photosData = await photosRes.json().catch(() => ({}));
+        if (!photosRes.ok || photosData?.success === false) {
+          throw new Error(
+            photosData?.message ||
+              "리뷰 이미지 수정 중 오류가 발생했습니다."
+          );
+        }
+
+        // 필요하다면 응답으로 existingPhotos 갱신 가능 (지금은 바로 뒤로 가므로 생략)
+        // setExistingPhotos(photosData.data ?? []);
+      }
+
+      setModalMessage("리뷰가 수정되었습니다.");
       setModalCloseAction(() => () => nav(-1));
       setIsModalOpen(true);
-      // nav(-1); // <-- 모달이 닫힌 후에 실행되도록 위로 이동
-
     } catch (err) {
       console.error(err);
-      // [수정] alert -> modal
-      // alert(`수정 중 오류가 발생했습니다: ${err.message}`);
       setModalMessage(`수정 중 오류가 발생했습니다: ${err.message}`);
       setIsModalOpen(true);
     } finally {
@@ -265,15 +327,12 @@ export default function EditReview() {
   };
 
   if (!initialReview) {
-    // 이 컴포넌트는 useEffect의 모달 + 리다이렉트가 실행될 때까지
-    // 잠시 렌더링될 수 있으므로, 로딩 상태를 반환합니다.
     return (
       <div className="edit-review-page">
         <TopHeader />
         <p style={{ padding: "20px", textAlign: "center" }}>
           리뷰 정보를 불러오는 중...
         </p>
-        {/* [수정] 모달 렌더링 로직을 여기에도 추가 (필수) */}
         <AlertModal
           isOpen={isModalOpen}
           message={modalMessage}
@@ -285,7 +344,6 @@ export default function EditReview() {
 
   return (
     <div className="edit-review-page">
-      {/* [수정] AlertModal props를 동적으로 변경 */}
       <AlertModal
         isOpen={isModalOpen}
         message={modalMessage}
@@ -328,7 +386,8 @@ export default function EditReview() {
             <button
               type="button"
               className={`er-tag ${isDisability ? "is-selected" : ""}`}
-              id="disabled" aria-pressed={isDisability}
+              id="disabled"
+              aria-pressed={isDisability}
               onClick={() => setIsDisability((prev) => !prev)}
             >
               장애인 화장실
@@ -392,14 +451,11 @@ export default function EditReview() {
           </div>
         </div>
 
-        {/* === ⬇️ MODIFIED Text Area ⬇️ === */}
+        {/* 리뷰 내용 + 사진 */}
         <div className="er-field">
-          <label htmlFor={`${uid}-desc`} className="er-label">
-            {/* 비어있는 라벨 */}
-          </label>
+          <label htmlFor={`${uid}-desc`} className="er-label" />
           
           <div className={`er-textarea-wrapper ${errors.desc ? "er-input-err" : ""}`}>
-            
             <div className="er-photo-previews">
               {existingPhotos.map((photo) => (
                 <div key={photo.id} className="er-preview-item">
@@ -464,9 +520,9 @@ export default function EditReview() {
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*" // 이미지 파일만
-          multiple // 여러 장 선택 가능하게
-          style={{ display: "none" }} // 화면에 보이지 않게
+          accept="image/*"
+          multiple
+          style={{ display: "none" }}
           aria-hidden="true"
         />
     

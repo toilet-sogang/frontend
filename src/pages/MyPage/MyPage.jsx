@@ -4,15 +4,142 @@ import rename from "../../assets/MyPage/rename.svg"
 import star_yell from "../../assets/star/star-yell.svg"
 import star_grey from "../../assets/star/star-grey.svg"
 import paper from "../../assets/MyPage/paper.svg"
-import { useNavigate } from "react-router-dom";
-import ChangeName from "./ChangeName"
 import ad from "../../assets/MyPage/ad_my.svg"
-
+import { useNavigate } from "react-router-dom";
 import TopHeader from '../../components/layout/TopHeader.jsx'
+import { useEffect, useState } from "react"
+import Popup from "../../components/layout/AlertModal.jsx"
 
 export default function MyPage() {
   const nav = useNavigate();
-  // ✅ ReviewCard.jsx에서 복사: 태그 한글 매핑
+  const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
+  const BACKEND_ON = false;
+
+  const [userInfo, setUserInfo] = useState(null);
+  const [myReviews, setMyReviews] = useState(null);
+
+  // 🔹 모달 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState(null); // 확인 시 실행할 함수 (있으면 confirm 모드)
+
+  const openModal = (message, action = null) => {
+    setModalMessage(message);
+    setModalAction(() => action); // null이면 그냥 알림 모달
+    setIsModalOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (modalAction) {
+      modalAction();
+    }
+    setIsModalOpen(false);
+    setModalAction(null);
+    setModalMessage("");
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setModalAction(null);
+    setModalMessage("");
+  };
+
+  // ✅ Mock Data
+  const mockUserInfo = {
+    name: "김도영",
+    profile: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s",
+    rate: 15,
+    numReview: 3
+  };
+
+  const mockMyReviews = [
+    {
+      id: 101,
+      name: "홍대",
+      gender: "FEMALE",
+      line: 2,
+      desc: "깔끔하고 휴지가 넉넉했어요.",
+      star: 4,
+      photo: [
+        { id: 1, url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s" },
+        { id: 2, url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s" }
+      ],
+      tag: ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
+      createdAt: "2025-09-30T10:00:00",
+      updatedAt: "2025-09-30T11:00:00"
+    },
+    {
+      id: 99,
+      name: "신촌(지하)",
+      gender: "MALE",
+      line: 2,
+      desc: "조금 좁지만 관리가 잘 되어 있습니다.",
+      star: 5,
+      photo: [],
+      tag: ["GOOD_VENTILATION"],
+      createdAt: "2025-09-28T09:00:00",
+      updatedAt: "2025-09-28T09:00:00"
+    }
+  ];
+
+  // 1. 내 프로필 조회
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!BACKEND_ON) {
+          setUserInfo(mockUserInfo);
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/user/profile`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+          }
+        });
+
+        if (!response.ok) throw new Error("서버 응답 오류");
+
+        const result = await response.json();
+        setUserInfo(result.data);
+      } catch (e) {
+        console.error("프로필 조회 실패:", e);
+        setUserInfo(mockUserInfo);
+      }
+    };
+
+    fetchData();
+  }, [API_URL, BACKEND_ON]);
+
+  // 2. 내 리뷰 조회
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!BACKEND_ON) {
+          setMyReviews(mockMyReviews);
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/api/v1/reviews/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+          }
+        });
+
+        if (!response.ok) throw new Error("서버 응답 오류");
+
+        const result = await response.json();
+        setMyReviews(result.data);
+      } catch (e) {
+        console.error("리뷰 조회 실패:", e);
+        setMyReviews(mockMyReviews);
+      }
+    };
+
+    fetchData();
+  }, [API_URL, BACKEND_ON]);
+
   const tagMap = {
     TOILET_CLEAN: "변기 상태가 청결해요",
     SINK_CLEAN: "세면대가 청결해요",
@@ -26,7 +153,6 @@ export default function MyPage() {
     BAD_ODOR: "악취가 심해요",
   };
 
-  // ✅ ReviewCard.jsx에서 복사: 날짜 포맷 함수
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -37,80 +163,58 @@ export default function MyPage() {
     return `${year}.${month}.${day} ${hours}:${minutes}`;
   };
 
-  const res1 = {
-    "success": true,
-    "code": 200,
-    "message": "내 정보 조회 성공",
-    "data": {
-      "name": "김도영",
-      "profile": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s", // 생략
-      "rate": 15,
-      "numReview": 3
-    }
-  }
+  const renderStars = (star) => (
+    <div className="star-container">
+      {[...Array(5)].map((_, i) => (
+        <img key={i} src={i < star ? star_yell : star_grey} alt="star" className="star-icon" width="17px" />
+      ))}
+    </div>
+  );
 
-  // === ⬇️ MODIFIED res2 (Photo Data) ⬇️ ===
-  const res2 = {
-  "success": true,
-  "code": 200,
-  "message": "리뷰 목록을 성공적으로 조회했습니다.",
-  "data": [
-    {
-      "id": 101,
-      "name": "홍대",
-      "gender": "FEMALE",
-      "line": 2,
-      "desc": "깔끔하고 휴지가 넉넉했어요.",
-      "star": 4,
-      "photo": [ // [FIX] 객체 배열 형식으로 수정
-        {
-          "id": 1, // 이미지의 고유 ID
-          "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
+  // 🔹 실제 삭제 로직
+  const performDeleteReview = async (reviewId) => {
+    if (!BACKEND_ON) {
+      setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      openModal("mock 모드: 리뷰가 삭제된 것처럼만 처리되었습니다.");
+      return;
+    }
+
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      openModal("로그인 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/user/review/${reviewId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-        {
-          "id": 2, // 이미지의 고유 ID
-          "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
-        }
-      ],
-      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
-      "createdAt": "2025-09-30T10:00:00",
-      "updatedAt": "2025-09-30T11:00:00"
-    },
-    {
-      "id": 99,
-      "name": "신촌(지하)",
-      "gender": "MALE",
-      "line": 2,
-      "desc": "조금 좁지만 관리가 잘 되어 있습니다.",
-      "star": 5,
-      "photo": [], // 사진이 없는 경우
-      "tag": ["GOOD_VENTILATION"],
-      "createdAt": "2025-09-28T09:00:00",
-      "updatedAt": "2025-09-28T09:00:00"
+      });
+
+      if (!response.ok) {
+        throw new Error("리뷰 삭제 중 오류가 발생했습니다.");
+      }
+
+      setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      openModal("리뷰가 성공적으로 삭제되었습니다.");
+    } catch (e) {
+      console.error("리뷰 삭제 실패:", e);
+      openModal(e.message || "리뷰 삭제 중 오류가 발생했습니다.");
     }
-  ]
-}
-  // === ⬆️ MODIFIED res2 (Photo Data) ⬆️ ===
+  };
 
-  const { name, profile, rate, numReview } = res1.data
-  const reviews = res2.data
+  // 🔹 삭제 버튼 클릭 시 → 확인/취소 모달
+  const handleDeleteReview = (reviewId) => {
+    openModal("정말 이 리뷰를 삭제하시겠습니까?", () => performDeleteReview(reviewId));
+  };
 
-  // 별점 렌더링 함수
-  const renderStars = (star) => {
-    return (
-      <div className="star-container">
-        {[...Array(5)].map((_, i) => (
-          <img
-            key={i}
-            src={i < star ? star_yell : star_grey}
-            alt="star"
-            className="star-icon"
-            width="17px" // ✅ ReviewCard.jsx의 별 크기 적용
-          />
-        ))}
-      </div>
-    )
+  if (!userInfo || !myReviews) {
+    return <div>로딩 중...</div>;
   }
+
+  const { name, profile, rate, numReview } = userInfo;
 
   return (
     <div className="my-page">
@@ -125,11 +229,10 @@ export default function MyPage() {
             </div>
             <div className="my-name">
               <p>{name}</p>
-              <img src={rename} alt="rename" onClick={()=>{nav("/ChangeName")}}/>
+              <img src={rename} alt="rename" onClick={() => nav("/ChangeName")} />
             </div>
           </div>
         </div>
-
         <div className="profile-bottom">
           {name}님, 총 <span>{numReview}</span>개의 리뷰를 작성하셨네요!
         </div>
@@ -139,71 +242,71 @@ export default function MyPage() {
 
       <div className="my-review">
         <div className="review-header">내가 쓴 리뷰</div>
-
         <img src={ad} alt="" width="100%" />
-        {/* 광고 */}
 
         <div className="reviews">
-
-          {reviews.map((review) => {
-            // ✅ ReviewCard.jsx의 날짜 포맷 로직 적용
+          {myReviews.map((review) => {
             const isUpdated = review.createdAt !== review.updatedAt;
             const displayDate = isUpdated
               ? `${formatDate(review.updatedAt)} (수정)`
               : formatDate(review.createdAt);
 
             return (
-            <div key={review.id} className="review-item">
+              <div key={review.id} className="review-item">
+                <div className="review-header">
+                  <h3><img src={paper} alt="" />{review.name}</h3>
+                  <p>
+                    {review.line}호선&nbsp;·{" "}
+                    {review.gender === "FEMALE" ? (
+                      <span className="fe">&nbsp;여자</span>
+                    ) : (
+                      <span className="ma">&nbsp;남자</span>
+                    )}
+                  </p>
+                  <p className="review-date">{displayDate}</p>
+                </div>
 
-              <div className="review-header">
-                <h3><img src={paper} alt="" />{review.name}</h3>
-                
-                <p>{review.line}호선&nbsp;· {review.gender=="FEMALE"? <span className="fe">&nbsp;여자</span>:<span className="ma">&nbsp;남자</span>}</p>
+                <div className="stars">{renderStars(review.star)}</div>
+                <div className="review-desc">{review.desc}</div>
 
-                <p className="review-date">{displayDate} {/* ✅ 포맷된 날짜 적용 */} </p>
+                {review.photo.length > 0 && (
+                  <div className="review-photos">
+                    {review.photo.map((photo) => (
+                      <img key={photo.id} src={photo.url} alt={`review-photo-${photo.id}`} />
+                    ))}
+                  </div>
+                )}
 
-        
-
-              </div>
-
-              <div className="stars">{renderStars(review.star)}</div>
-
-              <div className="review-desc">{review.desc}</div>
-
-              {/* === ⬇️ MODIFIED Photo Rendering ⬇️ === */}
-              {review.photo.length > 0 && (
-                <div className="review-photos">
-                  {/* [FIX] photo가 {id, url} 객체이므로 photo.url을 src로 사용 */}
-                  {review.photo.map((photo) => (
-                    <img key={photo.id} src={photo.url} alt={`review-photo-${photo.id}`} />
+                <div className="review-tags">
+                  {review.tag.map((t, index) => (
+                    <span key={index} className="tag">
+                      {tagMap[t] || t}
+                    </span>
                   ))}
                 </div>
-              )}
-              {/* === ⬆️ MODIFIED Photo Rendering ⬆️ === */}
 
-              <div className="review-tags">
-                {review.tag.map((t, index) => (
-                  <span key={index} className="tag">
-                    {tagMap[t] || t} {/* ✅ 한글 태그 매핑 적용 */}
-                  </span>
-                ))}
+                <div className="options">
+                  <div className="edit" onClick={() => nav("/editreview", { state: { review } })}>
+                    수정하기
+                  </div>
+                  <div className="del" onClick={() => handleDeleteReview(review.id)}>
+                    삭제하기
+                  </div>
+                </div>
               </div>
-              <div className="options">
-                {/* [수정] onClick 핸들러 추가: /editreview로 'review' 객체를 state에 담아 전달 */}
-                <div 
-                  className="edit"
-                  onClick={() => nav("/editreview", { state: { review: review } })}
-                >
-                  수정하기
-                </div>
-                  <div className="del">삭제하기</div>
-                </div>
-
-
-            </div>
-          )})}
+            );
+          })}
         </div>
       </div>
+
+      {/* 🔹 모달: 삭제 확인 시엔 취소 버튼도 보이고, 일반 알림 땐 확인만 */}
+      <Popup
+        isOpen={isModalOpen}
+        message={modalMessage}
+        onClose={handleConfirm}
+        showCancel={!!modalAction}
+        onCancel={handleCancel}
+      />
     </div>
-  )
+  );
 }
