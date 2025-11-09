@@ -1,23 +1,38 @@
-// 예: src/components/layout/AlertModal.jsx
+// src/components/layout/AlertModal.jsx
 
 import React from "react";
-import "./AlertModal.css"; // CSS 파일을 임포트합니다.
+import "./AlertModal.css";
 
-export default function AlertModal({ isOpen, message, onClose }) {
-  // isOpen이 false이면 아무것도 렌더링하지 않습니다.
-  if (!isOpen) {
-    return null;
-  }
+export default function AlertModal({
+  isOpen,
+  message,
+  onClose,          // 확인 버튼 클릭
+  showCancel = false, // 기본값: false → 확인 버튼만
+  onCancel,         // 취소 버튼 클릭 (옵션)
+}) {
+  if (!isOpen) return null;
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
+  };
 
   return (
-    // 모달 배경 (뒷화면 어둡게)
     <div className="modal-backdrop">
-      {/* 모달 팝업창 본체 */}
       <div className="modal-content">
         <p className="modal-message">{message}</p>
-        <button className="modal-button" onClick={onClose}>
-          확인
-        </button>
+
+        <div className="modal-buttons">
+          {showCancel && (
+            <button className="modal-button cancel" onClick={handleCancel}>
+              취소
+            </button>
+          )}
+          <button className="modal-button" onClick={onClose}>
+            확인
+          </button>
+        </div>
       </div>
     </div>
   );
