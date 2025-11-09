@@ -1,0 +1,43 @@
+.er-field {
+    margin-top: 20px;
+}
+
+/* --- 고정 푸터 스타일 (기존과 동일) --- */
+.er-footer {
+ 
+  display: flex;
+  gap: 8px;
+  
+  background-color: #ffffff;
+  justify-content: center;
+  
+}
+
+.er-btn {
+  
+  padding: 14px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 400;
+  border: none;
+  cursor: pointer;
+}
+
+.er-btn.er-ghost {
+  padding-left: 50px;
+  padding-right: 50px;
+  background-color: #f1f3f5;
+  color: #495057;
+}
+
+.er-btn.er-primary {
+  padding-left: 35px;
+  padding-right: 35px;
+  background-color: #4860BE;
+  color: #ffffff;
+}
+
+.er-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

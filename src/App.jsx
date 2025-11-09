@@ -13,6 +13,10 @@ import ChangeName from './pages/MyPage/ChangeName';
 import EditReview from './pages/MyPage/EditReview';
 import ScrollToTop from './components/layout/ScrollToTop';
 import ToiletDetailPage from './pages/Detail/ToiletDetailPage';
+import WriteReviewPage from './pages/Detail/WriteReviewPage';
+import AllReviewsPage from './pages/Detail/AllReviewsPage';
+import PhotoReviewsPage from './pages/Detail/PhotoReviewsPage';
+import PhotoReviewDetailPage from './pages/Detail/PhotoReviewDetailPage';
 
 // [신규] 백엔드 리다이렉션을 처리할 콜백 컴포넌트 임포트
 // (경로는 AuthCallback.jsx 파일 위치에 맞게 조정하세요)
@@ -32,6 +36,10 @@ function App() {
         <Route path="/changename" element={<ChangeName />} />
         <Route path="/editreview" element={<EditReview />} />
         <Route path="/review/:stationId" element={<ToiletDetailPage />} />
+        <Route path="/review/:stationId/reviews" element={<AllReviewsPage />} />
+        <Route path="/review/:stationId/write" element={<WriteReviewPage />} />
+        <Route path="/review/:stationId/photos" element={<PhotoReviewsPage />} />
+        <Route path="/review/:stationId/photos/detail" element={<PhotoReviewDetailPage />} />
 
         {/* [신규] OAuth2 콜백 라우트 추가
           백엔드가 로그인 성공 후 ?accessToken=...&refreshToken=... 를

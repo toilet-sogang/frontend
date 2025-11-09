@@ -34,8 +34,7 @@ const renderStars = (star, onChange, size = 40) => {
               src={active ? star_yell : star_grey}
               alt={active ? `${n}점 선택됨` : `${n}점 선택`}
               className="star-icon"
-              width={size}
-              height={size}
+              style={{ width: `${size}px`, height: `${size}px` }}
             />
           </button>
         );

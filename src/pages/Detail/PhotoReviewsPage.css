@@ -1,0 +1,144 @@
+/* PhotoReviewsPage.css */
+
+/* [수정] 클래스 이름 변경 */
+.photo-reviews-container {
+  padding: 16px;
+}
+
+/* [수정] 클래스 이름 변경 */
+.photo-reviews-header {
+  padding: 12px;
+  background-color: none;
+  border-radius: 8px;
+  margin-bottom: 0px; 
+  text-align :left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* [수정] 클래스 이름 변경 */
+.photo-reviews-header-info {
+  display: flex;
+  align-items: center; 
+  gap: 20px; 
+}
+
+/* [수정] h3 스타일 (AllReviewsPage와 동일) */
+.photo-reviews-header h3 {
+  margin: 0; 
+  font-size: 24px;
+  font-weight: 400;
+  font-family: Pretendard;
+}
+
+/* [수정] p 스타일 (AllReviewsPage와 동일) */
+.photo-reviews-header p {
+  margin: 0; 
+  font-size: 16px;
+  color: #595757; 
+  display: flex;
+  align-items: center;
+}
+
+/* [수정] '포토리뷰 (N)' 텍스트 및 경계선 */
+.photo-review-count {
+  font-size: 20px;
+  color: #333;
+  font-weight: 500;
+  margin-top: 10px;
+  width: 100%;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px; /* 간격 조절 */
+}
+
+/* 필터 스타일 (AllReviewsPage와 동일) */
+.review-filters {
+  display: flex;
+  justify-content: flex-end; 
+  gap: 8px;
+  margin-bottom: 16px; 
+  margin-top: 10px; /* 간격 조절 */
+}
+
+.review-filters select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: #fff;
+  color: #000;
+}
+
+/* [신규] --- 포토 그리드 스타일 --- */
+.photo-grid-list {
+  display: grid;
+  /* 4열 그리드. 각 열이 1fr(동일한 비율)을 차지 */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px; /* 사진 사이의 간격 */
+  margin-bottom: 16px;
+}
+
+.photo-grid-item {
+  /* ToiletDetailPage의 .photo-example-item 스타일 대신
+    'aspect-ratio: 1 / 1'을 사용하면, 
+    너비(1fr)에 맞춰 높이가 자동으로 1:1(정사각형)이 됩니다.
+  */
+  aspect-ratio: 1 / 1; 
+  
+  /* '빈칸' 스타일 (요청 사항) */
+  background-color: #D9D9D9; 
+  
+  /* 버튼 기본 스타일 제거 */
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 4px; /* 살짝 둥글게 */
+
+  /* (참고) 실제 이미지를 넣을 경우 이 스타일 사용 */
+  /*
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  */
+}
+/* --- 그리드 스타일 끝 --- */
+
+
+/* 페이지네이션 스타일 (AllReviewsPage와 동일) */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; 
+  margin-top: 32px;
+  padding-bottom: 32px;
+}
+
+.pagination button {
+  border: 1px solid #ddd;
+  background-color: #fff;
+  padding: 8px 12px;
+  min-width: 40px; 
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination button.active {
+  background-color: #0d6efd; 
+  color: white;
+  border-color: #0d6efd;
+}
+
+.pagination button:not(.active):not(:disabled):hover {
+  background-color: #f4f4f4;
+}

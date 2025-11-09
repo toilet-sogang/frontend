@@ -30,21 +30,31 @@
   margin: 0 0 20px 0; /* 메시지와 버튼 사이 간격 */
   line-height: 1.5;
   white-space: pre-wrap; /* \n 줄바꿈이 있다면 적용 */
+  padding-bottom: 16px; 
+  margin-bottom: 0;
 }
 
 .modal-button {
   width: 80px;
-  padding: 10px;
+  padding: 0px;
   border: none;
   border-radius: 8px;
-  background-color: #0d6efd; /* EditReview 버튼과 동일한 파란색 */
-  color: #ffffff;
+  background-color: #fff; /* EditReview 버튼과 동일한 파란색 */
+  color: #333;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
   transition: background-color 0.2s;
+  /* [추가] 메시지와의 경계선 */
+  border-top: 1px solid #e0e0e0; /* 선 색상이나 두께 조절 */
+
+  /* [추가] 경계선과 '확인' 텍스트 사이 여백 */
+  padding-top: 10px; 
+  
+  /* .modal-content의 가로폭 전체를 차지하도록 설정 (권장) */
+  width: 100%;
 }
 
 .modal-button:hover {
-  background-color: #0b5ed7;
+  background-color: none;
 }

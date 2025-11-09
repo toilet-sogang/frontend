@@ -69,7 +69,7 @@ gap: 13px;
 }
 
 .er-field{
-    margin:  20px 27px 20px 27px; /* 필드 간 하단 마진 추가 */
+    margin: 20px 27px 20px 27px; /* 필드 간 하단 마진 추가 */
 }
 
 .er-review-info h3 {
@@ -252,13 +252,14 @@ margin: 0; /* h3 기본 마진 제거 */
   display: flex;
   gap: 8px;
   background-color: #ffffff;
+  justify-content: center;
   
 }
 
 .er-btn {
-  flex: 1;
+  
   padding: 14px;
-  border-radius: 8px;
+  border-radius: 20px;
   font-size: 16px;
   font-weight: 600;
   border: none;
@@ -266,12 +267,16 @@ margin: 0; /* h3 기본 마진 제거 */
 }
 
 .er-btn.er-ghost {
+  padding-left: 5px;
+  padding-right: 5px;
   background-color: #f1f3f5;
   color: #495057;
 }
 
 .er-btn.er-primary {
-  background-color: #0d6efd;
+  padding-left: 5px;
+  padding-right: 5px;
+  background-color: #4860BE;
   color: #ffffff;
 }
 
