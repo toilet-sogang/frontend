@@ -81,6 +81,7 @@
     flex-direction: column;
     gap: 14px;
     align-items: center;
+    margin-top: 16px;
 }
 
 .review-item{

@@ -49,6 +49,7 @@ export default function MyPage() {
     }
   }
 
+  // === ⬇️ MODIFIED res2 (Photo Data) ⬇️ ===
   const res2 = {
   "success": true,
   "code": 200,
@@ -61,11 +62,17 @@ export default function MyPage() {
       "line": 2,
       "desc": "깔끔하고 휴지가 넉넉했어요.",
       "star": 4,
-      "photo": [
-         "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s",
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
+      "photo": [ // [FIX] 객체 배열 형식으로 수정
+        {
+          "id": 1, // 이미지의 고유 ID
+          "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
+        },
+        {
+          "id": 2, // 이미지의 고유 ID
+          "url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ20mlA7nl2LGw9OZ3osAMsbKTZ30IvyijtXw&s"
+        }
       ],
-      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"], // 'tag' (MyPage) -> 'tags' (EditReview)
+      "tag": ["TOILET_CLEAN", "BRIGHT_LIGHTING"],
       "createdAt": "2025-09-30T10:00:00",
       "updatedAt": "2025-09-30T11:00:00"
     },
@@ -76,15 +83,14 @@ export default function MyPage() {
       "line": 2,
       "desc": "조금 좁지만 관리가 잘 되어 있습니다.",
       "star": 5,
-      "photo": [],
+      "photo": [], // 사진이 없는 경우
       "tag": ["GOOD_VENTILATION"],
       "createdAt": "2025-09-28T09:00:00",
       "updatedAt": "2025-09-28T09:00:00"
     }
   ]
 }
-
-
+  // === ⬆️ MODIFIED res2 (Photo Data) ⬆️ ===
 
   const { name, profile, rate, numReview } = res1.data
   const reviews = res2.data
@@ -152,7 +158,7 @@ export default function MyPage() {
               <div className="review-header">
                 <h3><img src={paper} alt="" />{review.name}</h3>
                 
-                <p>{review.line}호선&nbsp;· {review.gender=="FEMALE"? <p className="fe">&nbsp;여자</p>:<p className="ma">&nbsp;남자</p>}</p>
+                <p>{review.line}호선&nbsp;· {review.gender=="FEMALE"? <span className="fe">&nbsp;여자</span>:<span className="ma">&nbsp;남자</span>}</p>
 
                 <p className="review-date">{displayDate} {/* ✅ 포맷된 날짜 적용 */} </p>
 
@@ -164,13 +170,16 @@ export default function MyPage() {
 
               <div className="review-desc">{review.desc}</div>
 
+              {/* === ⬇️ MODIFIED Photo Rendering ⬇️ === */}
               {review.photo.length > 0 && (
                 <div className="review-photos">
-                  {review.photo.map((url, index) => (
-                    <img key={index} src={url} alt={`review-${index}`} />
+                  {/* [FIX] photo가 {id, url} 객체이므로 photo.url을 src로 사용 */}
+                  {review.photo.map((photo) => (
+                    <img key={photo.id} src={photo.url} alt={`review-photo-${photo.id}`} />
                   ))}
                 </div>
               )}
+              {/* === ⬆️ MODIFIED Photo Rendering ⬆️ === */}
 
               <div className="review-tags">
                 {review.tag.map((t, index) => (
