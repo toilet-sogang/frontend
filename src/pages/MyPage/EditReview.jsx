@@ -7,11 +7,9 @@ import "./EditReview.css";
 import ad from "../../assets/MyPage/ad_edit.svg";
 import AlertModal from "../../components/layout/AlertModal";
 
-// ⭐ 백엔드 설정
 const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
-const BACKEND_ON = false; // 실제 서버 붙일 땐 true 로!
+const BACKEND_ON = true;
 
-// 별점 렌더링 함수
 const renderStars = (star, onChange, size = 40) => {
   return (
     <div className="star-container er-stars" role="radiogroup" aria-label="별점 선택">
@@ -47,7 +45,6 @@ const renderStars = (star, onChange, size = 40) => {
   );
 };
 
-/** 백엔드 enum -> 라벨 매핑 */
 const tagMap = {
   TOILET_CLEAN: "변기 상태가 청결해요",
   SINK_CLEAN: "세면대가 청결해요",
@@ -71,7 +68,6 @@ export default function EditReview() {
 
   const initialReview = location.state?.review;
 
-  // 🔹 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [modalCloseAction, setModalCloseAction] = useState(null);
@@ -96,10 +92,16 @@ export default function EditReview() {
   const [star, setStar] = useState(
     typeof initialReview?.star === "number" ? initialReview.star : 0
   );
-  const [desc, setDesc] = useState(initialReview?.desc ?? "");
-  const [isDisability, setIsDisability] = useState(
-    Boolean(initialReview?.is_disability ?? false)
-  );
+  const [description, setDescription] = useState(initialReview?.description ?? "");
+
+const [isDisability, setIsDisability] = useState(
+  Boolean(
+    initialReview?.isDis ??  // 혹시 detail API에서 isDis로 올 수도 있으니까
+    initialReview?.dis ??    // 리스트/현재 응답에선 dis 로 옴
+    false
+  )
+);
+
   const [selectedTags, setSelectedTags] = useState(
     new Set(
       Array.isArray(initialReview?.tag)
@@ -143,15 +145,16 @@ export default function EditReview() {
 
   const validate = () => {
     const next = {};
-    if (!star || star < 1) next.star = "별점을 선택하세요.";
-    if (!desc.trim()) next.desc = "리뷰를 작성해주세요.";
-    if (desc.length > MAX_DESC)
+
+    if (!star || star <= 0) next.star = "별점을 선택하세요.";
+    if (description.length > MAX_DESC) {
       next.desc = `설명은 ${MAX_DESC}자 이내로 입력하세요.`;
+    }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  /** 파일 업로드 버튼 */
   const handlePhotoUploadClick = () => {
     if (existingPhotos.length + newPhotos.length >= MAX_PHOTOS) {
       setModalMessage(`사진은 최대 ${MAX_PHOTOS}장까지 업로드할 수 있습니다.`);
@@ -161,7 +164,6 @@ export default function EditReview() {
     fileInputRef.current?.click();
   };
 
-  /** 파일 선택 시 */
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
@@ -186,7 +188,6 @@ export default function EditReview() {
     }
   };
 
-  /** 기존 사진 삭제 */
   const handleDeleteExisting = (idToDelete) => {
     setExistingPhotos((prev) =>
       prev.filter((photo) => photo.id !== idToDelete)
@@ -194,7 +195,6 @@ export default function EditReview() {
     setDeletedPhotos((prev) => [...prev, idToDelete]);
   };
 
-  /** 새로 추가한 사진 삭제 */
   const handleDeleteNew = (indexToRemove) => {
     setNewPhotos((prev) => {
       const newArray = [...prev];
@@ -206,7 +206,6 @@ export default function EditReview() {
     });
   };
 
-  /** 언마운트 시 미리보기 URL 해제 */
   useEffect(() => {
     return () => {
       newPhotos.forEach((photo) => URL.revokeObjectURL(photo.preview));
@@ -217,7 +216,6 @@ export default function EditReview() {
     e.preventDefault();
     if (!validate() || !initialReview) return;
 
-    // 🔹 백엔드 OFF: 기존처럼 mock 처리
     if (!BACKEND_ON) {
       try {
         setSubmitting(true);
@@ -231,7 +229,6 @@ export default function EditReview() {
       return;
     }
 
-    // 🔹 백엔드 ON: 실제 API 호출
     if (!API_URL) {
       setModalMessage("백엔드 URL이 설정되지 않았습니다.");
       setIsModalOpen(true);
@@ -248,13 +245,15 @@ export default function EditReview() {
     setSubmitting(true);
 
     try {
-      // 1) 리뷰 내용 수정 PATCH /user/review/{reviewId}
+      // 리뷰 내용 수정
       const reviewPayload = {
         star: Number(star),
-        desc: desc.trim(),
-        tags: Array.from(selectedTags),
-        is_disability: Boolean(isDisability),
+        description: description.trim(),
+        tag: Array.from(selectedTags),
+        isDis: Boolean(isDisability),
       };
+
+      console.log("[리뷰수정 payload]", reviewPayload);
 
       const reviewRes = await fetch(
         `${API_URL}/user/review/${initialReview.id}`,
@@ -269,26 +268,26 @@ export default function EditReview() {
       );
 
       const reviewData = await reviewRes.json().catch(() => ({}));
+      console.log("[리뷰수정 응답]", reviewRes.status, reviewData);
+
       if (!reviewRes.ok || reviewData?.success === false) {
         throw new Error(
           reviewData?.message || "리뷰 수정 중 오류가 발생했습니다."
         );
       }
 
-      // 2) 이미지 수정 PATCH /user/review/{reviewId}/photos
-      if (newPhotos.length > 0 || deletedPhotos.length > 0) {
+      // 🔹 새 사진 업로드 (FormData)
+      if (newPhotos.length > 0) {
         const formData = new FormData();
 
-        // 추가되는 이미지
         newPhotos.forEach((photo) => {
           formData.append("photos", photo.file, photo.file.name);
         });
 
-        // 삭제할 이미지 id 목록
-        const requestBody = {
-          deleteImageIds: deletedPhotos,
-        };
-        formData.append("request", JSON.stringify(requestBody));
+        console.log("[사진 업로드 payload - FormData entries]");
+        for (const [key, value] of formData.entries()) {
+          console.log("  ", key, value);
+        }
 
         const photosRes = await fetch(
           `${API_URL}/user/review/${initialReview.id}/photos`,
@@ -296,23 +295,82 @@ export default function EditReview() {
             method: "PATCH",
             headers: {
               Authorization: `Bearer ${accessToken}`,
-              // ⚠️ 'Content-Type' 은 브라우저가 boundary 포함해서 자동 세팅하도록 둠
             },
             body: formData,
           }
         );
 
         const photosData = await photosRes.json().catch(() => ({}));
+        console.log("[사진 업로드 응답]", photosRes.status, photosData);
+
         if (!photosRes.ok || photosData?.success === false) {
           throw new Error(
             photosData?.message ||
-              "리뷰 이미지 수정 중 오류가 발생했습니다."
+              "리뷰 이미지 수정(업로드) 중 오류가 발생했습니다."
           );
         }
-
-        // 필요하다면 응답으로 existingPhotos 갱신 가능 (지금은 바로 뒤로 가므로 생략)
-        // setExistingPhotos(photosData.data ?? []);
       }
+
+// 🔹 기존 사진 삭제 (multipart/form-data + JSON part)
+if (deletedPhotos.length > 0) {
+  const deleteFormData = new FormData();
+
+  const deletePayload = { deleteImageIds: deletedPhotos };
+  console.log("[사진 삭제 ids]", deletedPhotos);
+  console.log("[사진 삭제 request JSON]", deletePayload);
+
+  // ✅ 서버가 원하는 {"deleteImageIds":[...]} 를 JSON으로 넣고,
+  //    이 파트의 Content-Type 이 application/json 이 되도록 Blob 으로 감싸줌
+  deleteFormData.append(
+    "request",
+    new Blob([JSON.stringify(deletePayload)], {
+      type: "application/json",
+    })
+  );
+
+  console.log("[사진 삭제 payload - FormData entries]");
+  for (const [key, value] of deleteFormData.entries()) {
+    if (value instanceof Blob) {
+      value.text().then((t) =>
+        console.log("   ", key, t)
+      );
+    } else {
+      console.log("   ", key, value);
+    }
+  }
+
+  const deleteRes = await fetch(
+    `${API_URL}/user/review/${initialReview.id}/photos`,
+    {
+      method: "PATCH",
+      headers: {
+        // ⚠️ 절대 Content-Type 수동 설정하지 말기!
+        // 브라우저가 boundary 포함한 multipart/form-data 를 자동으로 붙여줌
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: deleteFormData,
+    }
+  );
+
+  const deleteText = await deleteRes.text();
+  console.log("[사진 삭제 응답(raw)]", deleteRes.status, deleteText);
+
+  let deleteData = {};
+  try {
+    deleteData = JSON.parse(deleteText);
+  } catch (e) {
+    console.warn("사진 삭제 응답 JSON 파싱 실패:", e);
+  }
+
+  if (!deleteRes.ok || deleteData?.success === false) {
+    throw new Error(
+      deleteData?.message ||
+        "리뷰 이미지 수정(삭제) 중 오류가 발생했습니다."
+    );
+  }
+}
+
+
 
       setModalMessage("리뷰가 수정되었습니다.");
       setModalCloseAction(() => () => nav(-1));
@@ -490,8 +548,8 @@ export default function EditReview() {
               className="er-textarea"
               placeholder="리뷰를 작성해주세요"
               maxLength={MAX_DESC}
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={6}
             />
 
@@ -502,13 +560,11 @@ export default function EditReview() {
                 onClick={handlePhotoUploadClick}
                 aria-label="사진 업로드"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M4.68001 16.6666C4.29612 16.6666 3.97584 16.5383 3.71918 16.2816C3.46251 16.0249 3.3339 15.7044 3.33334 15.3199V4.67992C3.33334 4.29603 3.46195 3.97575 3.71918 3.71909C3.9764 3.46242 4.29668 3.33381 4.68001 3.33325H15.3208C15.7042 3.33325 16.0245 3.46186 16.2817 3.71909C16.5389 3.97631 16.6672 4.29659 16.6667 4.67992V15.3208C16.6667 15.7041 16.5383 16.0244 16.2817 16.2816C16.025 16.5388 15.7045 16.6671 15.32 16.6666H4.68001ZM4.68001 15.8333H15.3208C15.4486 15.8333 15.5661 15.7799 15.6733 15.6733C15.7806 15.5666 15.8339 15.4488 15.8333 15.3199V4.67992C15.8333 4.55159 15.78 4.43381 15.6733 4.32659C15.5667 4.21936 15.4489 4.16603 15.32 4.16659H4.68001C4.55168 4.16659 4.4339 4.21992 4.32668 4.32659C4.21945 4.43325 4.16612 4.55103 4.16668 4.67992V15.3208C4.16668 15.4485 4.22001 15.566 4.32668 15.6733C4.43334 15.7805 4.55084 15.8338 4.67918 15.8333M6.92334 13.7499H13.205C13.34 13.7499 13.4383 13.6896 13.5 13.5691C13.5617 13.4485 13.5533 13.3291 13.475 13.2108L11.7917 10.9508C11.7195 10.8608 11.6297 10.8158 11.5225 10.8158C11.4158 10.8158 11.3261 10.8608 11.2533 10.9508L9.34334 13.3658L8.15418 11.9283C8.0814 11.8488 7.99418 11.8091 7.89251 11.8091C7.7914 11.8091 7.70445 11.8541 7.63168 11.9441L6.67001 13.2108C6.58001 13.3291 6.56612 13.4485 6.62834 13.5691C6.69057 13.6896 6.7889 13.7499 6.92334 13.7499Z" fill="#4860BE"/>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"> <path d="M4.68001 16.6666C4.29612 16.6666 3.97584 16.5383 3.71918 16.2816C3.46251 16.0249 3.3339 15.7044 3.33334 15.3199V4.67992C3.33334 4.29603 3.46195 3.97575 3.71918 3.71909C3.9764 3.46242 4.29668 3.33381 4.68001 3.33325H15.3208C15.7042 3.33325 16.0245 3.46186 16.2817 3.71909C16.5389 3.97631 16.6672 4.29659 16.6667 4.67992V15.3208C16.6667 15.7041 16.5383 16.0244 16.2817 16.2816C16.025 16.5388 15.7045 16.6671 15.32 16.6666H4.68001ZM4.68001 15.8333H15.3208C15.4486 15.8333 15.5661 15.7799 15.6733 15.6733C15.7806 15.5666 15.8339 15.4488 15.8333 15.3199V4.67992C15.8333 4.55159 15.78 4.43381 15.6733 4.32659C15.5667 4.21936 15.4489 4.16603 15.32 4.16659H4.68001C4.55168 4.16659 4.4339 4.21992 4.32668 4.32659C4.21945 4.43325 4.16612 4.55103 4.16668 4.67992V15.3208C4.16668 15.4485 4.22001 15.566 4.32668 15.6733C4.43334 15.7805 4.55084 15.8338 4.67918 15.8333M6.92334 13.7499H13.205C13.34 13.7499 13.4383 13.6896 13.5 13.5691C13.5617 13.4485 13.5533 13.3291 13.475 13.2108L11.7917 10.9508C11.7195 10.8608 11.6297 10.8158 11.5225 10.8158C11.4158 10.8158 11.3261 10.8608 11.2533 10.9508L9.34334 13.3658L8.15418 11.9283C8.0814 11.8488 7.99418 11.8091 7.89251 11.8091C7.7914 11.8091 7.70445 11.8541 7.63168 11.9441L6.67001 13.2108C6.58001 13.3291 6.56612 13.4485 6.62834 13.5691C6.69057 13.6896 6.7889 13.7499 6.92334 13.7499Z" fill="#4860BE"/> </svg>
               </button>
               
               <span className="er-count">
-                {desc.length}/{MAX_DESC}
+                {description.length}/{MAX_DESC}
               </span>
             </div>
           </div>

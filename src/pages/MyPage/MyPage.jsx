@@ -13,7 +13,7 @@ import Popup from "../../components/layout/AlertModal.jsx"
 export default function MyPage() {
   const nav = useNavigate();
   const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
-  const BACKEND_ON = false;
+  const BACKEND_ON = true;
 
   const [userInfo, setUserInfo] = useState(null);
   const [myReviews, setMyReviews] = useState(null);
@@ -112,33 +112,55 @@ export default function MyPage() {
   }, [API_URL, BACKEND_ON]);
 
   // 2. 내 리뷰 조회
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (!BACKEND_ON) {
-          setMyReviews(mockMyReviews);
-          return;
-        }
-
-        const response = await fetch(`${API_URL}/api/v1/reviews/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-          }
-        });
-
-        if (!response.ok) throw new Error("서버 응답 오류");
-
-        const result = await response.json();
-        setMyReviews(result.data);
-      } catch (e) {
-        console.error("리뷰 조회 실패:", e);
-        setMyReviews(mockMyReviews);
+// 2. 내 리뷰 조회
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      if (!BACKEND_ON) {
+        setMyReviews(mockMyReviews);  // mock은 이미 배열
+        return;
       }
-    };
 
-    fetchData();
-  }, [API_URL, BACKEND_ON]);
+      const accessToken = localStorage.getItem("accessToken");
+      console.log("accessToken:", accessToken);
+
+      if (!accessToken) {
+        console.error("로그인 토큰이 없습니다.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/user/review/list`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const text = await response.text();
+      console.log("리뷰 조회 응답 status:", response.status, "body:", text);
+
+      if (!response.ok) {
+        throw new Error(`서버 응답 오류 (${response.status})`);
+      }
+
+      const result = JSON.parse(text);
+
+      // 🔥 여기서 reviews 배열만 꺼내서 넣기
+      const reviews = Array.isArray(result.data?.reviews)
+        ? result.data.reviews
+        : [];
+
+      setMyReviews(reviews);
+    } catch (e) {
+      console.error("리뷰 조회 실패:", e);
+      setMyReviews(mockMyReviews);
+    }
+  };
+
+  fetchData();
+}, [API_URL, BACKEND_ON]);
+
+
 
   const tagMap = {
     TOILET_CLEAN: "변기 상태가 청결해요",
@@ -171,39 +193,60 @@ export default function MyPage() {
     </div>
   );
 
-  // 🔹 실제 삭제 로직
-  const performDeleteReview = async (reviewId) => {
-    if (!BACKEND_ON) {
-      setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      openModal("mock 모드: 리뷰가 삭제된 것처럼만 처리되었습니다.");
-      return;
-    }
+const performDeleteReview = async (reviewId) => {
+  if (!BACKEND_ON) {
+    setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    openModal("mock 모드: 리뷰가 삭제된 것처럼만 처리되었습니다.");
+    return;
+  }
 
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      openModal("로그인 정보가 없습니다. 다시 로그인해주세요.");
-      return;
-    }
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) {
+    openModal("로그인 정보가 없습니다. 다시 로그인해주세요.");
+    return;
+  }
 
-    try {
-      const response = await fetch(`${API_URL}/user/review/${reviewId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("리뷰 삭제 중 오류가 발생했습니다.");
-      }
-
-      setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      openModal("리뷰가 성공적으로 삭제되었습니다.");
-    } catch (e) {
-      console.error("리뷰 삭제 실패:", e);
-      openModal(e.message || "리뷰 삭제 중 오류가 발생했습니다.");
-    }
+  const url = `${API_URL}/user/review/${reviewId}`;
+  const options = {
+    method : "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
   };
+
+  // 🔍 요청 정보 로그
+  console.log("[리뷰 삭제 요청]", {
+    url,
+    ...options,
+  });
+
+  try {
+    const response = await fetch(url, options);
+
+    // 🔍 응답 로그 (raw text까지)
+    const text = await response.text();
+    console.log("[리뷰 삭제 응답 raw]", response.status, text);
+
+    if (!response.ok) {
+      throw new Error(`리뷰 삭제 중 오류가 발생했습니다. (status: ${response.status})`);
+    }
+
+    let result = {};
+    try {
+      result = JSON.parse(text);
+      console.log("[리뷰 삭제 응답 JSON]", result);
+    } catch (err) {
+      console.warn("리뷰 삭제 응답 JSON 파싱 실패:", err);
+    }
+
+    setMyReviews((prev) => prev.filter((r) => r.id !== reviewId));
+    openModal("리뷰가 성공적으로 삭제되었습니다.");
+  } catch (e) {
+    console.error("리뷰 삭제 실패:", e);
+    openModal(e.message || "리뷰 삭제 중 오류가 발생했습니다.");
+  }
+};
+
 
   // 🔹 삭제 버튼 클릭 시 → 확인/취소 모달
   const handleDeleteReview = (reviewId) => {
@@ -267,7 +310,7 @@ export default function MyPage() {
                 </div>
 
                 <div className="stars">{renderStars(review.star)}</div>
-                <div className="review-desc">{review.desc}</div>
+                <div className="review-desc">{review.description}</div>
 
                 {review.photo.length > 0 && (
                   <div className="review-photos">

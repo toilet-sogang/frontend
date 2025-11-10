@@ -3,7 +3,7 @@ import "./ChangeName.css";
 import TopHeader from "../../components/layout/TopHeader";
 
 export default function ChangeName() {
-  const BACKEND_ON = false; // 실제 백엔드 쓸 때 true 로
+  const BACKEND_ON = true; // 실제 백엔드 쓸 때 true 로
   const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
   const [name, setName] = useState("");
