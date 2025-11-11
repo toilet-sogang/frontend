@@ -52,6 +52,14 @@
   font-weight: 500;
 }
 
+.toilet-location-info span img {
+  /* 👇 [이 줄을 추가] 아이콘 오른쪽에 8px의 여백을 줍니다. */
+  margin-right: 8px;
+
+  /* (선택 사항) 아이콘과 텍스트의 세로 정렬을 맞춰줍니다. */
+  vertical-align: middle;
+}
+
 /* -------------------- */
 /* 2. AI 요약 (아코디언) */
 /* -------------------- */
@@ -63,13 +71,17 @@
 }
 
 .ai-summary-toggle {
+  display: flex;
+  /* 텍스트와 아이콘을 양쪽 끝으로 분리 */
+  align-items: center; /* 세로 중앙 정렬 */
+  
+  /* (참고) 이 버튼의 너비(width)가 100%로 설정되어 있어야
+     양쪽 끝으로 정렬하는 것이 의미가 있습니다. */
   background-color: #fff;
   border: none;
   padding: 14px 16px;
-  width: 100%;
-  display: flex;
-  justify-content: left;
-  align-items: center;
+
+  
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
@@ -82,6 +94,10 @@
   color: #444;
   border-radius: 10px;
   background: rgba(191, 200, 239, 0.32);
+}
+
+.ai-summary-toggle span:first-child {
+  margin-right: 8px; /* 👈 8px 만큼 간격을 줍니다 (값은 조절 가능) */
 }
 
 /* -------------------- */
@@ -154,21 +170,28 @@
 
 /* 2. '포토들' 예시 리스트 스타일 (부모 컨테이너) */
 .photo-list-example {
-  display: flex; /* 자식 요소(사각형)들을 가로로 나란히 배치 */
-  overflow-x: auto; /* 4개 이상일 때 가로 스크롤 (유지) */
-  padding: 0px 0;
-  /* border-right를 사용하므로 gap은 제거합니다. */
-  /* gap: 8px; */
+  display: grid; /* 자식 요소(사각형)들을 가로로 나란히 배치 */
+  /* 👇 [수정] 4개의 열(column)이 꽉 차도록 설정 */
+  grid-template-columns: repeat(4, 1fr); 
+  
+  /* 👇 [수정] 사진 사이의 간격 (조절 가능) */
+  gap: 0px; 
+  
+  width: 100%;
+  margin-top: 10px; /* (위쪽 버튼과의 간격) */
+ 
 }
 
 /* 3. 개별 포토 아이템 (div 사각형) */
 .photo-example-item {
+  aspect-ratio: 1 / 1;
   /* 요청하신 CSS 속성 */
-  width: 82px;
-  height: 82px;
+  
   flex-shrink: 0; /* 컨테이너가 줄어들어도 아이템 크기 유지 */
   border-right: 1px solid rgba(0, 0, 0, 0.55);
   background: #D9D9D9;
+  background-size: cover;
+  background-position: center;
 }
 
 /* (선택 사항이지만 추천)
@@ -210,13 +233,24 @@
   margin-top: 30px;
 }
 
+/* 👇 [수정] 이 부분을 수정하세요 */
 .review-filters select {
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  /* 1. 요청하신 스타일 적용 */
+  border-radius: 5px;
+  border: 0.5px solid #B1B1B1;
+  background: #FFF;
+  flex-shrink: 0;
+
+  /* 2. [수정] width/height 대신 padding으로 크기 조절 */
+  padding: 8px 12px; /* 세로 8px, 가로 12px (조절 가능) */
+  
+  /* 3. 텍스트 스타일 */
   font-size: 14px;
-  background-color: #fff;
   color: #000;
+  
+  /* 4. (선택 사항) 기본 화살표 스타일 사용 */
+  appearance: none; 
+  /* (만약 커스텀 화살표 아이콘을 배경으로 넣으려면 추가 작업 필요) */
 }
 
 .review-card-list {

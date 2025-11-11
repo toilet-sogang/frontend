@@ -1,54 +1,27 @@
-import React, { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import TopHeader from "../../components/layout/TopHeader";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-// [필요] ToiletDetailPage/WriteReviewPage 등에서 SVG와 tagMap을 가져옵니다.
-import star_yell from "../../assets/star/star-yell.svg";
-import star_grey from "../../assets/star/star-grey.svg";
-
-// [필요] 이 페이지를 위한 CSS 파일
+// 1. [신규] ReviewCard 컴포넌트 및 CSS 임포트
+import ReviewCard from "../../components/review/ReviewCard";
+import '../../components/review/ReviewCard.css';
 import "./PhotoReviewDetailPage.css";
+import arrow from "../../assets/ReviewPage/arrow-left.svg";
 
-// --- 유틸리티 함수 (다른 파일에서 복사) ---
 
-// 별점 렌더링 함수 (onChange 기능이 필요 없으므로 단순화)
-const renderStars = (starRating, totalStars = 5) => {
-  const roundedStars = Math.round(starRating);
-  const stars = [];
-  for (let i = 1; i <= totalStars; i++) {
-    stars.push(
-      <img
-        key={i}
-        src={i <= roundedStars ? star_yell : star_grey}
-        alt={i <= roundedStars ? "filled star" : "empty star"}
-        className="prdp-star-icon" // CSS에서 크기 조절
-      />
-    );
+// (Mock 데이터는 동일)
+const MOCK_PHOTO_DETAIL = {
+  "success": true, "code": 200, "message": "포토 리뷰 상세 조회 성공",
+  "data": {
+    "photoUrl": "https://placehold.co/600x400/E13A6E/white?text=Mock+Photo",
+    "review": {
+      "reviewId": 78, "userId": 15, "userName": "클린보이(Mock)", "star": 4.5,
+      "desc": "여기 정말 깨끗해요! (Mock Data)",
+      "tag": ["TOILET_CLEAN", "ENOUGH_HANDSOAP"],
+      "createdAt": "2023-10-27T15:00:00Z",
+      "updatedAt": "2023-10-27T15:00:00Z",
+      "good": 3, "isDis": false
+    }
   }
-  return <div className="prdp-rating">{stars}</div>;
-};
-
-// 태그 맵 (다른 파일에서 복사)
-const tagMap = {
-  TOILET_CLEAN: "변기 상태가 청결해요",
-  SINK_CLEAN: "세면대가 청결해요",
-  GOOD_VENTILATION: "환기가 잘 돼요",
-  ENOUGH_HANDSOAP: "손 세정제가 충분해요",
-  BRIGHT_LIGHTING: "조명 밝아요",
-  TRASH_OVERFLOW: "쓰레기가 넘쳐요",
-  DIRTY_FLOOR: "바닥이 더러워요",
-  DIRTY_MIRROR: "거울이 지저분해요",
-  NO_TOILET_PAPER: "휴지가 없어요",
-  BAD_ODOR: "악취가 심해요",
-  // (ToiletDetailPage의 더미 데이터에 있던 태그 추가)
-  WET_SINK: "세면대 주변이 젖었어요",
-  SPACIOUS: "화장실이 넓어요",
-  GOOD_SCENT: "향기가 좋아요",
-  CLOGGED_TOILET: "변기 물이 잘 안내려가요",
-  KIND_STAFF: "직원분이 친절해요",
-  BROKEN_HANDDRYER: "손 건조기가 고장났어요",
-  ENOUGH_TOILET_PAPER: "휴지가 충분해요",
-  CLEAN_MIRROR: "거울이 깨끗해요", // (데이터에 오타가 있었을 수 있음)
 };
 
 // --- 메인 컴포넌트 ---
@@ -56,83 +29,169 @@ const tagMap = {
 export default function PhotoReviewDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { toiletId, photoId } = useParams();
+  const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
+  const BACKEND_ON = true;
+  const { toilet } = location.state || {}; // 👈 헤더 이름 표시에 사용
+  const [photoData, setPhotoData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 1. PhotoReviewsPage에서 넘겨준 데이터 받기
-  const { review, toilet } = location.state || {};
-
-  // 2. 데이터 가드
+  // 3. [수정] 데이터 API 호출 (useEffect)
   useEffect(() => {
-    if (!review || !toilet) {
-      alert("잘못된 접근입니다. 리뷰 정보를 불러올 수 없습니다.");
+    // 🚨 [버그 1 수정]
+    // "로딩 중..." 멈춤 버그 해결을 위해 if (!toilet) 검사를 제거합니다.
+    /*
+    if (!toilet) {
+      alert("잘못된 접근입니다. 화장실 정보가 없습니다.");
       navigate(-1);
+      return;
     }
-  }, [review, toilet, navigate]);
+    */
 
-  // 3. 로딩 UI
-  if (!review || !toilet) {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      // (1) Mock 모드
+      if (!BACKEND_ON) {
+        // (Mock 데이터도 'isLiked' 필드 추가)
+        const mockReview = {
+          ...MOCK_PHOTO_DETAIL.data,
+          review: {
+            ...MOCK_PHOTO_DETAIL.data.review,
+            isLiked: false
+          }
+        };
+        setTimeout(() => {
+          setPhotoData(mockReview);
+          setIsLoading(false);
+        }, 500);
+        return;
+      }
+
+      // (2) 실제 API 모드
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        setError("로그인이 필요합니다.");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/toilet/${toiletId}/photos/${photoId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || "데이터를 불러오는 데 실패했습니다.");
+        }
+
+        if (result.success && result.data) {
+          const reviewWithLike = {
+            ...result.data,
+            review: result.data.review ? {
+              ...result.data.review,
+              isLiked: result.data.review.isLiked || false
+            } : null
+          };
+          setPhotoData(reviewWithLike);
+
+        } else {
+          throw new Error(result.message || "데이터 형식이 올바르지 않습니다.");
+        }
+
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+
+  }, [toiletId, photoId, navigate, API_URL, BACKEND_ON]); // 🚨 'toilet' 의존성 제거
+
+  // 5. 로딩 및 에러 UI
+  if (isLoading || !photoData) {
     return (
       <div className="photo-review-detail-page">
-        <TopHeader />
+        
+        {/* 🚨 [버그 2 수정] 로딩 중에도 헤더가 보이도록 추가 */}
+        <div className="prdp-header">
+          <button className="prdp-back-button" onClick={() => navigate(-1)}>
+            <img src={arrow} alt="뒤로가기" />
+          </button>
+          
+        </div>
+
         <p style={{ padding: "20px", textAlign: "center" }}>
-          리뷰 정보를 불러오는 중...
+          {isLoading ? "리뷰 정보를 불러오는 중..." : (error || "데이터 없음")}
+        </p>
+        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      </div>
+    );
+  }
+
+  // 6. 렌더링을 위해 photoUrl과 review 객체 추출
+  const { photoUrl, review } = photoData;
+
+  // 7. [신규] API가 사진은 줬지만 리뷰가 없는 경우 (null) 방어
+  if (!review) {
+    return (
+      <div className="photo-review-detail-page">
+        
+        {/* (이 코드는 헤더가 올바르게 들어가 있었습니다) */}
+        <div className="prdp-header">
+          <button className="prdp-back-button" onClick={() => navigate(-1)}>
+            <img src={arrow} alt="뒤로가기" />
+          </button>
+     
+        </div>
+
+        <p style={{ padding: "20px", textAlign: "center" }}>
+          사진에 연결된 리뷰 정보를 찾을 수 없습니다.
         </p>
       </div>
     );
   }
 
-  // 4. 날짜 포맷팅 (예: "2025-09-20T10:30:00" -> "2025.09.20")
-  const displayDate = review.createdAt
-    ? review.createdAt.split("T")[0].replace(/-/g, ".")
-    : "";
+  // 8. [삭제] displayDate (ReviewCard가 처리)
 
   return (
     <div className="photo-review-detail-page">
-      <TopHeader />
 
-      {/* 1. 사진 캐러셀 (가로 스크롤) */}
-      <div className="prdp-photo-list">
-        {review.photo && review.photo.length > 0 ? (
-          review.photo.map((photoUrl, index) => (
-            <img
-              key={index}
-              // [중요] 현재 photoUrl은 "review_105_img1.jpg" 같은 문자열입니다.
-              // 실제 작동하려면 이 문자열을 실제 이미지 경로로 변환해야 합니다.
-              // (예: `https://your-s3-bucket.com/${photoUrl}`)
-              // 지금은 임시 플레이스홀더를 사용합니다.
-              src={`https://via.placeholder.com/300x300.png?text=Photo+${index + 1}`}
-              alt={`포토리뷰 ${index + 1}`}
-              className="prdp-photo-item"
-            />
-          ))
-        ) : (
-          <div className="prdp-photo-item prdp-photo-placeholder">
-            사진이 없습니다.
-          </div>
-        )}
+      {/* 🚨 [버그 2 수정] 성공 시에도 헤더가 보이도록 추가 */}
+      <div className="prdp-header">
+        <button className="prdp-back-button" onClick={() => navigate(-1)}>
+          <img src={arrow} alt="뒤로가기" />
+        </button>
+    
       </div>
 
-      {/* 2. 리뷰 상세 내용 (ReviewCard와 유사) */}
+      {/* 1. 사진 (기존과 동일) */}
+      <div className="prdp-photo-list">
+        <img
+          src={photoUrl}
+          alt={`포토리뷰 ${review.reviewId}`}
+          className="prdp-photo-item"
+        />
+      </div>
+
+      
+
+      {/* 2. [수정] 리뷰 상세 내용을 ReviewCard 컴포넌트로 대체 */}
       <div className="prdp-content-container">
-        {/* 작성자 정보 */}
-        <div className="prdp-user-info">
-          <span className="prdp-user-name">{review.userName}</span>
-          {renderStars(review.star)}
-        </div>
-
-        {/* 태그 */}
-        <div className="prdp-tags">
-          {review.tag.map((tagKey) => (
-            <span key={tagKey} className="prdp-tag">
-              {tagMap[tagKey] || tagKey}
-            </span>
-          ))}
-        </div>
-
-        {/* 리뷰 본문 */}
-        <p className="prdp-description">{review.description}</p>
-
-        {/* 작성일 */}
-        <span className="prdp-date">{displayDate}</span>
+        <ReviewCard
+          reviews={[review]}
+          toiletId={toiletId}
+        />
       </div>
     </div>
   );
