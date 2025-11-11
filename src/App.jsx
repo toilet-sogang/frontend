@@ -22,6 +22,7 @@ import PhotoReviewDetailPage from './pages/Detail/PhotoReviewDetailPage';
 // (경로는 AuthCallback.jsx 파일 위치에 맞게 조정하세요)
 import AuthCallback from './pages/AuthCallback'; 
 
+
 function App() {
   return (
     <BrowserRouter >
@@ -35,11 +36,13 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/changename" element={<ChangeName />} />
         <Route path="/editreview" element={<EditReview />} />
-        <Route path="/review/:stationId" element={<ToiletDetailPage />} />
-        <Route path="/review/:stationId/reviews" element={<AllReviewsPage />} />
-        <Route path="/review/:stationId/write" element={<WriteReviewPage />} />
-        <Route path="/review/:stationId/photos" element={<PhotoReviewsPage />} />
-        <Route path="/review/:stationId/photos/detail" element={<PhotoReviewDetailPage />} />
+
+        <Route path="/toilet/:toiletId" element={<ToiletDetailPage />} />
+        <Route path="/toilet/:toiletId/reviews" element={<AllReviewsPage />} />
+        <Route path="/toilet/:toiletId/write" element={<WriteReviewPage />} />
+        <Route path="/toilet/:toiletId/photos" element={<PhotoReviewsPage />} />
+        <Route path="/toilet/:toiletId/photo/:photoId" element={<PhotoReviewDetailPage />} />
+
 
         {/* [신규] OAuth2 콜백 라우트 추가
           백엔드가 로그인 성공 후 ?accessToken=...&refreshToken=... 를
