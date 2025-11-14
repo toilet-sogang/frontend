@@ -1,134 +1,308 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 import searchIcon from '../../assets/searchbar.svg';
 import TopHeader from '../../components/layout/TopHeader';
 
-const DUMMY_STATION_DATA = [
-  { id: 1, name: '신촌(지하)', line: '2호선', gender: '남자', stars: 5 },
-  { id: 2, name: '신촌(지하)',  line: '2호선', gender: '여자',stars: 5 },
+import adbanner from "../../assets/ReviewPage/ad_Rectangle.svg";
+
+const MOCK_SEARCH_RESULTS = [
+  { id: 1, name: '신촌(지하)', line: 2, gender: 'M', star: 3.9, numReview: 5 },
+  { id: 2, name: '신촌(지하)', line: 2, gender: 'F', star: 4.2, numReview: 12 },
+  { id: 3, name: '이대', line: 2, gender: 'F', star: 4.5, numReview: 10 }
 ];
 
-// 예시 데이터 (실제로는 props나 API 응답으로 받아야 함)
-const nearbyStations = [
+const FALLBACK_NEARBY_STATIONS = [
   { id: 1, name: "신촌(지하)" },
   { id: 2, name: "홍대입구" },
   { id: 3, name: "이대" },
 ];
 
 function HomePage() {
-
   const navigate = useNavigate();
 
-  // 3. 검색어와 검색 결과를 state로 관리
-  const [searchTerm, setSearchTerm] = useState('');
+  const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
+  const BACKEND_ON = true; 
+
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [debouncedTerm, setDebouncedTerm] = useState(''); 
   const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false); 
+  
+  const [nearbyStations, setNearbyStations] = useState([]);
+  const [isLoadingNearby, setIsLoadingNearby] = useState(true);
+  
+  const [nearbyError, setNearbyError] = useState(null);
+  const [searchError, setSearchError] = useState(null);
 
-  // 4. 검색창 입력 시 호출될 함수
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchTerm(query);
+  // --- '가까운 역' API 호출 (useEffect) ---
+  useEffect(() => {
+    const fetchNearbyStations = async (latitude, longitude) => {
+      setIsLoadingNearby(true);
+      setNearbyError(null);
 
-    // 입력값이 '신촌'을 포함할 때만 더미데이터 필터링 (요청 사항)
-    if (query.trim() !== '' && query.includes('신촌')) {
-      const filteredResults = DUMMY_STATION_DATA.filter((station) =>
-        station.name.includes(query)
+      if (!BACKEND_ON) {
+        setNearbyStations(FALLBACK_NEARBY_STATIONS);
+        setIsLoadingNearby(false);
+        return;
+      }
+
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        setNearbyError('로그인이 필요합니다.(더미데이터를 표시합니다.)');
+        setNearbyStations(FALLBACK_NEARBY_STATIONS);
+        setIsLoadingNearby(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/station/suggest`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ latitude, longitude }),
+        });
+        if (!response.ok) throw new Error('서버에서 데이터를 가져오는 데 실패했습니다.');
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // 🚨 [수정] Array.isArray()로 `result.data.stations` (객체 안의 배열)이 배열인지 명확히 확인
+          if (Array.isArray(result.data.stations)) {
+            const transformedData = result.data.stations.map((stationName, index) => ({
+              id: index,
+              name: stationName,
+            }));
+            setNearbyStations(transformedData);
+          } else {
+            // API가 성공(success:true)했지만 data.stations가 배열이 아닌 경우 (null, {} 등)
+            console.warn("API Error (Nearby): `result.data.stations` is not an array.", result.data);
+            setNearbyStations([]); // 빈 배열로 설정하여 오류 방지
+          }
+        } else {
+          throw new Error(result.message || '가까운 역 목록을 불러오지 못했습니다.');
+        }
+      } catch (err) {
+        console.error("API Error (Nearby):", err.message);
+        setNearbyError('데이터를 불러오지 못했습니다. (더미 데이터를 표시합니다.)');
+        setNearbyStations(FALLBACK_NEARBY_STATIONS);
+      } finally {
+        setIsLoadingNearby(false);
+      }
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetchNearbyStations(position.coords.latitude, position.coords.longitude);
+        },
+        (err) => {
+          console.error("Geolocation error: ", err.message);
+          setNearbyError('위치 정보를 가져올 수 없습니다. 기본 위치로 검색합니다.');
+          fetchNearbyStations(37.4979, 127.0276);
+        }
       );
-      setSearchResults(filteredResults);
     } else {
-      // 그 외의 경우 (비어있거나 '신촌'이 아니면) 결과창 숨김
-      setSearchResults([]);
+      setNearbyError('이 브라우저에서는 위치 정보를 지원하지 않습니다. 기본 위치로 검색합니다.');
+      fetchNearbyStations(37.4979, 127.0276);
     }
+  }, [API_URL, BACKEND_ON]);
+
+  // --- 검색어 디바운싱 Effect ---
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedTerm(searchTerm);
+    }, 500); 
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  // --- 검색 API 호출 Effect ---
+  useEffect(() => {
+    const fetchSearchResults = async (query) => {
+      setIsSearching(true);
+      setSearchError(null); 
+
+      if (!BACKEND_ON) {
+        const filteredResults = MOCK_SEARCH_RESULTS.filter((station) =>
+          station.name.includes(query)
+        );
+        setSearchResults(filteredResults);
+        setIsSearching(false);
+        return;
+      }
+
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        setSearchError('검색을 위해 로그인이 필요합니다.');
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/station/search?q=${encodeURIComponent(query)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errResult = await response.json(); 
+          throw new Error(errResult.message || '검색 중 오류가 발생했습니다.');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          // 🚨 [수정] Array.isArray()로 `result.data`가 배열인지 명확히 확인
+          if (Array.isArray(result.data)) {
+            setSearchResults(result.data);
+          } else {
+            // API가 성공(success:true)했지만 data가 배열이 아닌 경우 (null, {} 등)
+            console.warn("API Error (Search): `result.data` is not an array.", result.data);
+            setSearchResults([]); // 빈 배열로 설정
+          }
+        } else {
+          throw new Error(result.message || '검색 결과를 불러오지 못했습니다.');
+        }
+      } catch (err) {
+        console.error("Search API Error:", err.message);
+        setSearchError(err.message); 
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    if (debouncedTerm.trim() !== '') {
+      fetchSearchResults(debouncedTerm);
+    } else {
+      setSearchResults([]); 
+    }
+  }, [debouncedTerm, API_URL, BACKEND_ON]); 
+
+  
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const renderStars = (startCount) => {
-    return '⭐'. repeat(startCount);
+    const roundedStars = Math.round(startCount);
+    return '⭐'.repeat(roundedStars);
   };
-  
-  // 네이버 지도로 이동하는 함수 (예시)
+
   const openNaverMap = () => {
-    // 특정 좌표나 검색어로 네이버 지도 앱/웹을 여는 URL 스킴
-    // 여기서는 예시로 네이버 지도 메인으로 연결합니다.
     window.open('https://map.naver.com/', '_blank');
   };
 
-  const handleStationClick = (stationId) => {
-    navigate(`/review/${stationId}`);
+  const goToDetailPage = (toiletId) => {
+    navigate(`/toilet/${toiletId}`);
   };
+
+  const handleNearbyClick = (stationName) => {
+    setSearchTerm(stationName);
+  };
+
 
   return (
     <div className="Home-page">
       <TopHeader />
-    <div className="home-container">
-      {/* 2. 검색 섹션: 검색창 + 검색 버튼 */}
-      <div className="search-wrapper">
-      <section className="search-section">
-        <input
-          type="text"
-          className="search-input"
-          placeholder="역 이름 검색하기"
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-        <button className="search-button">
-          <img src={searchIcon} alt="검색" />
-        </button>
-      </section>
-      {/* 6. 검색 결과 박스 (searchResults에 내용이 있을 때만 보임) */}
-        {searchResults.length > 0 && (
-          <ul className="search-results">
-            {searchResults.map((result) => (
-              <li key={result.id} className="result-item" onClick={() => handleStationClick(result.id)}>
-                <span className="result-name">{result.name}</span>
-                <div className="result-details">
-                  <span className="result-info">
-                    {result.line} · 
-                    <span className={result.gender === '남자' ? 'gender-male' : 'gender-female'}>
-                      {result.gender}
+      <div className="home-container">
+        
+        <div className="search-wrapper">
+          <section className="search-section">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="역 이름 검색하기"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <button className="search-button">
+              <img src={searchIcon} alt="검색" />
+            </button>
+          </section>
+
+          {/* --- 검색 결과창 --- */}
+          {searchTerm.trim() !== '' && (
+            <ul className="search-results">
+              {isSearching && <li className="result-item-info">검색 중...</li>}
+              
+              {!isSearching && searchError && (
+                <li className="result-item-info" style={{ color: 'red' }}>{searchError}</li>
+              )}
+
+              {/* [수정] searchResults가 확실히 배열이므로 .length 오류 없음 */}
+              {!isSearching && !searchError && searchResults.length === 0 && (
+                <li className="result-item-info">검색 결과가 없습니다.</li>
+              )}
+
+              {!isSearching && searchResults.map((result) => (
+                <li key={result.id} className="result-item" onClick={() => goToDetailPage(result.id)}>
+                  <span className="result-name">{result.name}</span>
+                  <div className="result-details">
+                    <span className="result-info">
+                      {result.line}호선 · 
+                      <span className={result.gender === 'M' ? 'gender-male' : 'gender-female'}>
+                        {result.gender === 'M' ? '남자' : '여자'}
+                      </span>
                     </span>
-                  </span>
-                <span className="result-star-icons">{renderStars(result.stars)}</span>
-                </div>
+                    <span className="result-star-icons">{renderStars(result.star)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div> 
+
+        <section className="map-link-section">
+          <h3>혹시 이 역을 찾고 계시나요?</h3>
+          <button className="map-link-button" onClick={openNaverMap}>
+            네이버지도 앱으로 보기
+          </button>
+        </section>
+
+        {/* --- '가까운 역' 섹션 --- */}
+        <section className="nearby-stations-section">
+          {nearbyError && (
+            <p style={{ color: 'red', textAlign: 'center', marginBottom: '10px' }}>
+              {nearbyError}
+            </p>
+          )}
+          <ul className="nearby-stations-list">
+            {isLoadingNearby && <li>가까운 역을 불러오는 중...</li>}
+            
+            {/* [수정] nearbyStations가 확실히 배열이므로 .length 오류 없음 */}
+            {!isLoadingNearby && nearbyStations.length > 0 && nearbyStations.map((station) => (
+              <li
+                key={station.id}
+                className="station-item"
+                onClick={() => handleNearbyClick(station.name)}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="station-item-name">{station.name}</span>
               </li>
             ))}
+            
+            {!isLoadingNearby && !nearbyError && nearbyStations.length === 0 && (
+              <li>주변에 등록된 역이 없습니다.</li>
+            )}
           </ul>
-        )}
-      </div> {/* .search-wrapper 끝 */}
+        </section>
 
-      {/* 3. 네이버 지도로 찾기 */}
-      <section className="map-link-section">
-        <h3>혹시 이 역을 찾고 계시나요?</h3>
-        <button className="map-link-button" onClick={openNaverMap}>
-          네이버지도 앱으로 보기
-        </button>
-      </section>
-
-      <section className="nearby-stations-section">
-      <ul className="nearby-stations-list">
-        {/* 4. 예시 데이터를 map()으로 반복 렌더링합니다. */}
-        {nearbyStations.map((station) => (
-          <li
-            key={station.id}
-            className="station-item"
-            // 5. onClick 이벤트를 추가합니다.
-            onClick={() => handleStationClick(station.id)}
-            style={{ cursor: 'pointer' }} // 클릭 가능하게 마우스 커서 변경
-          >
-            <span className="station-item-name">{station.name}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  
-
-      {/* 5. 광고 배너 */}
-      <footer className="ad-banner">
-        광고가 표시되는 영역입니다.
-      </footer>
-      
+        <footer className="ad-banner">
+          <img src={adbanner} alt="광고" className="prdp-ad-image" />
+        </footer>
+        
+      </div>
     </div>
-  </div>
   );
 }
 

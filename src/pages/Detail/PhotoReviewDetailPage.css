@@ -1,103 +1,95 @@
-/* PhotoReviewDetailPage.css */
-
+/* 기본 페이지 컨테이너 */
 .photo-review-detail-page {
+  width: 375px;
+  margin: 0 auto;
   background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  /* 👇 [수정] 페이지가 최소한 화면 높이를 꽉 채우도록 */
   min-height: 100vh;
 }
 
-/* 1. 사진 캐러셀 (가로 스크롤) */
-.prdp-photo-list {
-  display: flex;
-  overflow-x: auto; /* 핵심: 가로 스크롤 */
-  gap: 8px; /* 사진 사이 간격 */
-  padding: 16px;
-  background-color: #f8f8f8; /* 사진 배경색 */
-  
-  /* 스크롤바 숨기기 (선택 사항) */
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-.prdp-photo-list::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
+/* 1. [신규] 상단 커스텀 헤더 (TopHeader 대체) */
+.prdp-header {
+  /* 요청하신 스타일 (회색, 하단 둥근) */
+  width: 375px;
+  height: 101px;
+  flex-shrink: 0;
+  border-radius: 0 0 15px 15px;
+  background: rgba(177, 177, 177, 0.25);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
-.prdp-photo-item {
-  width: 80vw; /* 화면 너비의 80% */
-  height: 80vw; /* 1:1 정사각형 */
-  max-width: 300px; /* 최대 크기 제한 */
-  max-height: 300px;
-  
-  flex-shrink: 0; /* 아이템이 줄어들지 않도록 */
-  object-fit: cover; /* 이미지가 잘리지 않고 꽉 차도록 */
-  border-radius: 8px;
-  background-color: #eee;
-}
-
-/* 사진이 없을 때 예외 처리 */
-.prdp-photo-placeholder {
+  /* 내용 정렬 */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
-  font-size: 14px;
+  padding-top: 40px; /* (상태바 영역 고려) */
+  box-sizing: border-box;
 }
 
-/* 2. 리뷰 상세 내용 컨테이너 */
-.prdp-content-container {
-  padding: 20px 24px;
-}
-
-/* 유저 정보 (이름 + 별점) */
-.prdp-user-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.prdp-user-name {
-  font-size: 18px;
-  font-weight: 600; /* 굵게 */
-}
-
-/* 별점 (renderStars에서 생성됨) */
-.prdp-rating {
-  display: flex;
-  gap: 2px;
-}
-.prdp-star-icon {
-  width: 18px; /* 별 아이콘 크기 */
-  height: 18px;
-}
-
-/* 태그 (WriteReviewPage.css .er-tag 스타일 차용) */
-.prdp-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.prdp-tag {
-  padding: 6px 10px; /* .er-tag보다 조금 더 여유있게 */
-  border-radius: 50px;
-  background: #EAEDF9;
+.prdp-back-button {
+  /* 요청하신 '왼쪽' 화살표 */
+  position: absolute;
+  left: 15px;
+  bottom: 15px; /* (헤더의 왼쪽 아래) */
+  background: none;
   border: none;
-  color: #494949;
-  font-size: 11px;
-}
-
-/* 리뷰 본문 */
-.prdp-description {
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 24px;
+  cursor: pointer;
   color: #333;
-  margin: 0 0 16px 0;
-  white-space: pre-wrap; /* 줄바꿈(\n) 적용 */
 }
 
-/* 작성일 */
-.prdp-date {
-  font-size: 12px;
-  color: #888;
+.prdp-toilet-name {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 2. 사진 영역 */
+.prdp-photo-list {
+  width: 100%;
+}
+.prdp-photo-item {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 3. 하단 리뷰 컨테이너 (파란색, 상단 둥근 박스) */
+.prdp-content-container {
+  width: 375px;
+  flex-shrink: 0;
+  border-radius: 15px 15px 0 0;
+  background: rgba(191, 200, 239, 0.32);
+  box-sizing: border-box;
+
+  /* 👇 [수정] 리뷰 카드(내용물)를 내리기 위한 padding */
+  padding: 20px;
+
+  /* 👇 [수정] 남은 공간을 모두 채우기 */
+  flex-grow: 1;
+}
+
+/* ... (기존 .photo-reviews-page, .photo-reviews-header 등 스타일) ... */
+
+/* 🚨 [신규] 광고 컨테이너 스타일 */
+.prdp-ad-container {
+  /* 👇 1. 부모(.photo-reviews-container)의 너비에 꽉 차도록 설정 */
+  width: 100%;
+  
+  /* 헤더와 포토 그리드 사이의 상하 여백 */
+  margin: 16px 0; 
+  box-sizing: border-box;
+}
+
+/* 🚨 [신규] 광고 이미지 스타일 */
+.prdp-ad-image {
+  /* 👇 2. 이미지가 컨테이너 너비에 꽉 맞도록 설정 */
+  width: 100%;
+  
+  /* 이미지 비율 유지 */
+  height: auto; 
+  
+  /* 이미지 하단 불필요한 공백 제거 */
+  display: block; 
 }

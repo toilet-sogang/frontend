@@ -17,33 +17,44 @@
   position: relative;
 }
 
-/* 검색 결과 리스트 (드롭다운 박스) */
+/* ... (기존 .search-wrapper, .search-section 등 스타일) ... */
+
+/* 1. 검색 결과 목록 (ul) */
 .search-results {
-  position: absolute; /* 검색창 바로 아래에 띄움 */
-  top: 100%; /* 검색창 바로 밑에 붙임 */
-  left: 15px;
-  right: 15px;
-  background-color: #fff;
-  border: 1px solid rgba(177, 177, 177, 0.25);
-  border-radius: 8px;
   list-style: none;
-  padding: 10px;
-  margin: 8px 0 0 0; /* 검색창과 살짝 띄움 */
-  z-index: 10; /* 다른 요소들 위에 보이도록 */
+  padding: 0;
+  margin: 10px 0 0 0;
+  border-top: 1px solid #eee; /* 표의 상단 선 */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 검색 결과 각 항목 */
+/* 2. 각 검색 결과 항목 (li) - [핵심 수정] */
 .result-item {
-  padding: 12px 15px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 40px;
-  border-bottom: 1px solid #f0f0f0; /* '-' 구분선 역할 */
+  /* 👇 [수정] Flex 대신 Grid 레이아웃 사용 */
+  display: grid;
+  
+  /* 👇 [수정] 2개의 열(Column)을 정의합니다. */
+  /* 1열(이름): 남은 공간을 모두 사용 (1fr) */
+  /* 2열(상세정보): 내용은 필요한 만큼만 (auto) */
+  grid-template-columns: 130px 1fr;
+
+  /* 항목들 사이의 간격 */
+  gap: 10px; 
+
+  /* 세로 중앙 정렬 */
+  align-items: center; 
+
+  /* 가로 선 (사용자 요청) */
+  border-bottom: 1px solid #eee;
+
+  padding: 12px 16px;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-/* 마지막 항목은 구분선 제거 */
+/* 마지막 항목의 밑줄은 제거 */
 .result-item:last-child {
   border-bottom: none;
 }
@@ -52,34 +63,57 @@
   background-color: #f9f9f9;
 }
 
-.result-details {
-    display: flex;
-    flex-direction: column;
-    gap : 4px;
+/* 3. 검색 결과 - 역 이름 (1열) */
+.result-name {
+  font-size: 16px;
+  font-weight: 400;
+  color: #595757;
+
+  /* 👇 [추가] 역 이름이 너무 길면 ...으로 자릅니다. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 역 이름 */
-.result-name {
-  font-size: 15px;
-  font-weight: 400;
+/* 4. 검색 결과 - 상세정보 (2열) */
+.result-details {
+  /* 👇 [수정] 상세정보(호선/성별, 별점)를 세로로 쌓음 */
+  display: flex;
+  flex-direction: column;
+
+  
+
+  /* 상세정보가 줄바꿈되지 않도록 함 */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 5. 검색 결과 - 호선/성별 */
+.result-info {
+  font-size: 13px;
   color: #595757;
 }
 
-.result-info {
-    font-size: 14px;
-    font-weight: 400;
-    color: #595757;
+/* 6. 검색 결과 - 별점 (이모지) */
+.result-star-icons {
+  font-size: 14px;
+  margin-top: 2px;
 }
 
-
+/* 성별 색상 (기존) */
 .gender-male {
-    color: #007bff;
-    font-weight: 700;
+  color: #0D6EFD;
+  font-weight: 500;
+}
+.gender-female {
+  color: #E13A6E;
+  font-weight: 500;
 }
 
-.gender-female {
-    color: #e60023;
-    font-weight: 700;
+/* 검색 중... / 검색 결과 없음 (기존) */
+.result-item-info {
+  padding: 12px 16px;
+  color: #888;
 }
 
 /* 별점 */
@@ -195,20 +229,51 @@
 }
 
 
-/* 5. (기존) 광고 배너 */
+/* 1. [신규] 광고 배너 (footer) 스타일 */
 .ad-banner {
-  padding: 40px 20px;
-  background-color: #e9ecef;
-  text-align: center;
-  border-radius: 12px;
-  color: #868e96;
-  font-size: 16px;
-  
+  /* 1. 화면에 고정시키고 스크롤해도 따라오지 않음 */
   position: fixed;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%); /* 'left: 50%'와 세트로 중앙 정렬 */
+  
+  /* 2. 화면 맨 아래에 배치 */
+  bottom: 95px;
+  
+  /* 3. 가로로 꽉 차게 설정 */
+  left: 0;
+  right: 0;
   width: 100%;
-  max-width: 600px; /* .home-container와 동일한 최대 너비 */
-  box-sizing: border-box; /* 패딩이 너비를 넘지 않게 */
+
+  /* (선택 사항) 다른 요소들보다 위에 보이도록 설정 */
+  z-index: 1000;
+  
+  /* (선택 사항) 이미지가 로드되기 전의 기본 배경색 */
+  background-color: #f0f0f0;
+}
+
+/* 2. [신규] 배너 안의 이미지 스타일 */
+.ad-banner .prdp-ad-image {
+  /* 1. 부모(.ad-banner)의 너비에 꽉 맞춤 */
+  width: 100%;
+  
+  /* 2. 이미지 비율 유지를 위해 높이는 auto */
+  height: auto;
+  
+  /* 3. <img> 태그의 불필요한 하단 여백 제거 */
+  display: block;
+}
+
+/* * 3. [중요] 콘텐츠 겹침 방지 
+ *
+ * .ad-banner를 fixed로 만들면 '가까운 역' 목록 위로 
+ * 배너가 겹쳐서 내용을 가리게 됩니다.
+ *
+ * .home-container에 padding-bottom을 주어 
+ * 배너 높이만큼 공간을 확보해야 합니다.
+ */
+.home-container {
+  /* ... (기존 .home-container 스타일) ... */
+  
+  /* * 👇 [이 줄을 추가하세요]
+   * (광고 배너의 실제 높이에 맞춰 80px 값을 조절하세요) 
+   */
+  padding-bottom: 80px; 
 }
