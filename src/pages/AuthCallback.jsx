@@ -31,13 +31,13 @@ export default function AuthCallback() {
 
       // 7. 토큰 저장이 끝났으므로 메인 페이지로 이동시킵니다.
       // (replace: true는 브라우저 뒤로가기 시 이 /callback 페이지로 다시 오지 않게 합니다)
-      navigate('/', { replace: true });
+      navigate('/homepage', { replace: true });
 
     } else {
       // 6. (디버깅) 토큰이 URL에 없는 비정상적인 접근
       console.error('인증 실패: URL 쿼리 파라미터에 토큰이 없습니다.');
       alert('로그인에 실패하였습니다. 로그인 페이지로 돌아갑니다.');
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     }
     
     // 이 로직은 페이지가 처음 렌더링될 때 딱 한 번만 실행되어야 합니다.

@@ -6,6 +6,7 @@ import star_grey from "../../assets/star/star-grey.svg";
 import "./EditReview.css";
 import ad from "../../assets/MyPage/ad_edit.svg";
 import AlertModal from "../../components/layout/AlertModal";
+import apiFetch from "../../api";
 
 const API_URL = import.meta.env.VITE_APP_BACKEND_URL;
 const BACKEND_ON = true;
@@ -255,14 +256,10 @@ const [isDisability, setIsDisability] = useState(
 
       console.log("[리뷰수정 payload]", reviewPayload);
 
-      const reviewRes = await fetch(
-        `${API_URL}/user/review/${initialReview.id}`,
+      const reviewRes = await apiFetch(
+        `/user/review/${initialReview.id}`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
           body: JSON.stringify(reviewPayload),
         }
       );
@@ -289,13 +286,10 @@ const [isDisability, setIsDisability] = useState(
           console.log("  ", key, value);
         }
 
-        const photosRes = await fetch(
-          `${API_URL}/user/review/${initialReview.id}/photos`,
+        const photosRes = await apiFetch(
+          `/user/review/${initialReview.id}/photos`,
           {
             method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
             body: formData,
           }
         );
@@ -315,7 +309,7 @@ const [isDisability, setIsDisability] = useState(
 if (deletedPhotos.length > 0) {
   const deleteFormData = new FormData();
 
-  const deletePayload = { deleteImageIds: deletedPhotos };
+  const deletePayload = { deletedImageIds: deletedPhotos };
   console.log("[사진 삭제 ids]", deletedPhotos);
   console.log("[사진 삭제 request JSON]", deletePayload);
 
@@ -339,15 +333,10 @@ if (deletedPhotos.length > 0) {
     }
   }
 
-  const deleteRes = await fetch(
-    `${API_URL}/user/review/${initialReview.id}/photos`,
+  const deleteRes = await apiFetch(
+    `/user/review/${initialReview.id}/photos`,
     {
       method: "PATCH",
-      headers: {
-        // ⚠️ 절대 Content-Type 수동 설정하지 말기!
-        // 브라우저가 boundary 포함한 multipart/form-data 를 자동으로 붙여줌
-        Authorization: `Bearer ${accessToken}`,
-      },
       body: deleteFormData,
     }
   );

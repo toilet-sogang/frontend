@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import TopHeader from '../../components/layout/TopHeader.jsx'
 import { useEffect, useState } from "react"
 import Popup from "../../components/layout/AlertModal.jsx"
+import apiFetch from '../../api.js';
+import ScrollToTop from "../../components/layout/ScrollToTop.jsx"
 
 export default function MyPage() {
   const nav = useNavigate();
@@ -91,17 +93,15 @@ export default function MyPage() {
           return;
         }
 
-        const response = await fetch(`${API_URL}/user/profile`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`
-          }
+        const response = await apiFetch(`/user/profile`, {
+          method: "GET"
         });
 
         if (!response.ok) throw new Error("서버 응답 오류");
 
         const result = await response.json();
         setUserInfo(result.data);
+        console.log("유저 정보", result.data);
       } catch (e) {
         console.error("프로필 조회 실패:", e);
         setUserInfo(mockUserInfo);
@@ -129,11 +129,8 @@ useEffect(() => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/user/review/list`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      const response = await apiFetch(`/user/review/list`, {
+        method: "GET"
       });
 
       const text = await response.text();
@@ -206,12 +203,10 @@ const performDeleteReview = async (reviewId) => {
     return;
   }
 
-  const url = `${API_URL}/user/review/${reviewId}`;
+  const url = `/user/review/${reviewId}`;
   const options = {
     method : "DELETE",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+
   };
 
   // 🔍 요청 정보 로그
@@ -221,7 +216,7 @@ const performDeleteReview = async (reviewId) => {
   });
 
   try {
-    const response = await fetch(url, options);
+    const response = await apiFetch(url, options);
 
     // 🔍 응답 로그 (raw text까지)
     const text = await response.text();
@@ -261,6 +256,7 @@ const performDeleteReview = async (reviewId) => {
 
   return (
     <div className="my-page">
+      <ScrollToTop/>
       <TopHeader />
       <div className="profileContainer">
         <div className="profile-top">

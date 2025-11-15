@@ -30,9 +30,9 @@ function App() {
       <Routes>
         
         {/* --- 기존 라우트 (유지) --- */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/homepage" element={<HomePage />} />
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/changename" element={<ChangeName />} />
         <Route path="/editreview" element={<EditReview />} />
